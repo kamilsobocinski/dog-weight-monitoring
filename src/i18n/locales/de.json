@@ -17,7 +17,7 @@
     "breedPlaceholder": "Rasse suchen...",
     "sex": "Geschlecht",
     "male": "Ruede",
-    "female": "Hundin",
+    "female": "Huendin",
     "birthdate": "Geburtsdatum",
     "save": "Profil speichern",
     "saved": "Profil gespeichert!",
@@ -88,7 +88,7 @@
     "enableNotifications": "Erinnerungen aktivieren",
     "notifGranted": "Erinnerungen aktiviert!",
     "notifDenied": "Berechtigung verweigert. Bitte in den Browser-Einstellungen aktivieren.",
-    "testNotif": "Testehtinnerung senden",
+    "testNotif": "Test-Erinnerung senden",
     "appInfo": "Ueber die App",
     "version": "Version"
   },

@@ -13,7 +13,7 @@ i18n
     resources: { en: { translation: en }, pl: { translation: pl }, de: { translation: de }, es: { translation: es } },
     fallbackLng: 'en',
     supportedLngs: ['en', 'pl', 'de', 'es'],
-    detection: { order: ['localStorage', 'navigator'], caches: ['localStorage'] },
+    detection: { order: ['localStorage'], caches: ['localStorage'] },
     interpolation: { escapeValue: false }
   })
 
