@@ -1,0 +1,109 @@
+{
+  "app": {
+    "name": "Dog Weight Monitoring",
+    "tagline": "Dbaj o zdrowie swojego psa"
+  },
+  "nav": {
+    "dashboard": "Pulpit",
+    "add": "Dodaj pomiar",
+    "history": "Historia",
+    "settings": "Ustawienia"
+  },
+  "setup": {
+    "title": "Profil mojego psa",
+    "name": "Imie psa",
+    "namePlaceholder": "np. Burek",
+    "breed": "Rasa",
+    "breedPlaceholder": "Wyszukaj rase...",
+    "sex": "Plec",
+    "male": "Pies",
+    "female": "Suka",
+    "birthdate": "Data urodzenia",
+    "save": "Zapisz profil",
+    "saved": "Profil zapisany!",
+    "fetchingRef": "Pobieranie danych wzorcowych...",
+    "refFound": "Dane wzorcowe zaladowane",
+    "refNotFound": "Brak danych wzorcowych dla tej rasy",
+    "noBreedSelected": "Najpierw wybierz rase"
+  },
+  "weight": {
+    "title": "Dodaj pomiar",
+    "value": "Waga (kg)",
+    "valuePlaceholder": "np. 12.5",
+    "date": "Data",
+    "note": "Notatka (opcjonalnie)",
+    "notePlaceholder": "np. po wizycie u weterynarza",
+    "save": "Zapisz",
+    "saved": "Pomiar zapisany!",
+    "delete": "Usun",
+    "confirmDelete": "Usunac ten pomiar?",
+    "noData": "Brak pomiarow",
+    "addFirst": "Dodaj pierwszy pomiar"
+  },
+  "dashboard": {
+    "title": "Pulpit",
+    "currentWeight": "Aktualna waga",
+    "idealRange": "Zakres wzorcowy",
+    "lastMeasured": "Ostatni pomiar",
+    "trend": "Trend",
+    "trendUp": "Przyrost",
+    "trendDown": "Spadek",
+    "trendStable": "Stabilna",
+    "noData": "Brak danych - dodaj pierwszy pomiar!",
+    "age": "Wiek",
+    "years": "l",
+    "months": "m",
+    "comparedToIdeal": "vs. wzorzec",
+    "above": "powyzej normy",
+    "below": "ponizej normy",
+    "withinRange": "w normie",
+    "chartTitle": "Historia wagi",
+    "referenceMin": "Min wzorzec",
+    "referenceMax": "Max wzorzec",
+    "yourDog": "Twoj pies"
+  },
+  "history": {
+    "title": "Historia",
+    "date": "Data",
+    "weight": "Waga",
+    "note": "Notatka",
+    "noData": "Brak zapisanych pomiarow"
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "dogProfile": "Profil psa",
+    "notifications": "Przypomnienia",
+    "notificationsDesc": "Przypomnienie o wazeniu psa",
+    "interval": "Przypominaj co",
+    "intervalOptions": {
+      "weekly": "1 tydzien",
+      "biweekly": "2 tygodnie",
+      "monthly": "1 miesiac",
+      "off": "Wylaczone"
+    },
+    "language": "Jezyk",
+    "units": "Jednostka wagi",
+    "kg": "Kilogramy (kg)",
+    "lbs": "Funty (lbs)",
+    "enableNotifications": "Wlacz przypomnienia",
+    "notifGranted": "Przypomnienia wlaczone!",
+    "notifDenied": "Brak uprawnien. Wlacz w ustawieniach przegladarki.",
+    "testNotif": "Wyslij testowe przypomnienie",
+    "appInfo": "O aplikacji",
+    "version": "Wersja"
+  },
+  "install": {
+    "title": "Zainstaluj aplikacje",
+    "iosStep1": "Stuknij",
+    "iosStep2": "przycisk Udostepnij na dole Safari",
+    "iosStep3": "Nastepnie wybierz Dodaj do ekranu glownego",
+    "androidBtn": "Zainstaluj aplikacje",
+    "dismiss": "Moze pozniej"
+  },
+  "errors": {
+    "weightInvalid": "Podaj prawidlowa wage",
+    "weightTooLow": "Waga wydaje sie zbyt mala",
+    "weightTooHigh": "Waga wydaje sie zbyt duza",
+    "dateRequired": "Wybierz date"
+  }
+}

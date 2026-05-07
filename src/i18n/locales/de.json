@@ -1,0 +1,109 @@
+{
+  "app": {
+    "name": "Dog Weight Monitoring",
+    "tagline": "Halten Sie Ihren Hund gesund"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "add": "Gewicht eintragen",
+    "history": "Verlauf",
+    "settings": "Einstellungen"
+  },
+  "setup": {
+    "title": "Mein Hundeprofil",
+    "name": "Name des Hundes",
+    "namePlaceholder": "z.B. Bello",
+    "breed": "Rasse",
+    "breedPlaceholder": "Rasse suchen...",
+    "sex": "Geschlecht",
+    "male": "Ruede",
+    "female": "Hundin",
+    "birthdate": "Geburtsdatum",
+    "save": "Profil speichern",
+    "saved": "Profil gespeichert!",
+    "fetchingRef": "Referenzdaten werden geladen...",
+    "refFound": "Referenzdaten geladen",
+    "refNotFound": "Keine Referenzdaten fuer diese Rasse gefunden",
+    "noBreedSelected": "Bitte zuerst eine Rasse auswaehlen"
+  },
+  "weight": {
+    "title": "Messung hinzufuegen",
+    "value": "Gewicht (kg)",
+    "valuePlaceholder": "z.B. 12.5",
+    "date": "Datum",
+    "note": "Notiz (optional)",
+    "notePlaceholder": "z.B. nach Tierarztbesuch",
+    "save": "Speichern",
+    "saved": "Messung gespeichert!",
+    "delete": "Loeschen",
+    "confirmDelete": "Diese Messung loeschen?",
+    "noData": "Noch keine Messungen",
+    "addFirst": "Erste Messung hinzufuegen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "currentWeight": "Aktuelles Gewicht",
+    "idealRange": "Idealbereich",
+    "lastMeasured": "Letzte Messung",
+    "trend": "Trend",
+    "trendUp": "Zunahme",
+    "trendDown": "Abnahme",
+    "trendStable": "Stabil",
+    "noData": "Noch keine Daten - erste Messung hinzufuegen!",
+    "age": "Alter",
+    "years": "J",
+    "months": "M",
+    "comparedToIdeal": "vs. Ideal",
+    "above": "ueber Ideal",
+    "below": "unter Ideal",
+    "withinRange": "im Idealbereich",
+    "chartTitle": "Gewichtsverlauf",
+    "referenceMin": "Min. Ideal",
+    "referenceMax": "Max. Ideal",
+    "yourDog": "Ihr Hund"
+  },
+  "history": {
+    "title": "Verlauf",
+    "date": "Datum",
+    "weight": "Gewicht",
+    "note": "Notiz",
+    "noData": "Keine Messungen aufgezeichnet"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "dogProfile": "Hundeprofil",
+    "notifications": "Erinnerungen",
+    "notificationsDesc": "Erinnerung zum Wiegen des Hundes",
+    "interval": "Erinnerung alle",
+    "intervalOptions": {
+      "weekly": "1 Woche",
+      "biweekly": "2 Wochen",
+      "monthly": "1 Monat",
+      "off": "Aus"
+    },
+    "language": "Sprache",
+    "units": "Gewichtseinheit",
+    "kg": "Kilogramm (kg)",
+    "lbs": "Pfund (lbs)",
+    "enableNotifications": "Erinnerungen aktivieren",
+    "notifGranted": "Erinnerungen aktiviert!",
+    "notifDenied": "Berechtigung verweigert. Bitte in den Browser-Einstellungen aktivieren.",
+    "testNotif": "Testehtinnerung senden",
+    "appInfo": "Ueber die App",
+    "version": "Version"
+  },
+  "install": {
+    "title": "App installieren",
+    "iosStep1": "Tippen Sie auf",
+    "iosStep2": "den Teilen-Button unten in Safari",
+    "iosStep3": "Dann Zum Home-Bildschirm waehlen",
+    "androidBtn": "App installieren",
+    "dismiss": "Vielleicht spaeter"
+  },
+  "errors": {
+    "weightInvalid": "Bitte ein gueltiges Gewicht eingeben",
+    "weightTooLow": "Gewicht erscheint zu niedrig",
+    "weightTooHigh": "Gewicht erscheint zu hoch",
+    "dateRequired": "Bitte ein Datum auswaehlen"
+  }
+}

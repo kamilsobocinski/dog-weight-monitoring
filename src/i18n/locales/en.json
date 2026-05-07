@@ -1,0 +1,109 @@
+{
+  "app": {
+    "name": "Dog Weight Monitoring",
+    "tagline": "Keep your dog healthy"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "add": "Add Weight",
+    "history": "History",
+    "settings": "Settings"
+  },
+  "setup": {
+    "title": "My Dog's Profile",
+    "name": "Dog's name",
+    "namePlaceholder": "e.g. Max",
+    "breed": "Breed",
+    "breedPlaceholder": "Search breed...",
+    "sex": "Sex",
+    "male": "Male",
+    "female": "Female",
+    "birthdate": "Date of birth",
+    "save": "Save profile",
+    "saved": "Profile saved!",
+    "fetchingRef": "Fetching reference data...",
+    "refFound": "Reference data loaded",
+    "refNotFound": "No reference data found for this breed",
+    "noBreedSelected": "Please select a breed first"
+  },
+  "weight": {
+    "title": "Add measurement",
+    "value": "Weight (kg)",
+    "valuePlaceholder": "e.g. 12.5",
+    "date": "Date",
+    "note": "Note (optional)",
+    "notePlaceholder": "e.g. after vet visit",
+    "save": "Save",
+    "saved": "Measurement saved!",
+    "delete": "Delete",
+    "confirmDelete": "Delete this measurement?",
+    "noData": "No measurements yet",
+    "addFirst": "Add your first measurement"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "currentWeight": "Current weight",
+    "idealRange": "Ideal range",
+    "lastMeasured": "Last measured",
+    "trend": "Trend",
+    "trendUp": "↑ Gaining",
+    "trendDown": "↓ Losing",
+    "trendStable": "→ Stable",
+    "noData": "No data yet — add your first measurement!",
+    "age": "Age",
+    "years": "yr",
+    "months": "mo",
+    "comparedToIdeal": "vs. ideal",
+    "above": "above ideal",
+    "below": "below ideal",
+    "withinRange": "within ideal range",
+    "chartTitle": "Weight history",
+    "referenceMin": "Min ideal",
+    "referenceMax": "Max ideal",
+    "yourDog": "Your dog"
+  },
+  "history": {
+    "title": "History",
+    "date": "Date",
+    "weight": "Weight",
+    "note": "Note",
+    "noData": "No measurements recorded"
+  },
+  "settings": {
+    "title": "Settings",
+    "dogProfile": "Dog profile",
+    "notifications": "Reminders",
+    "notificationsDesc": "Get reminded to weigh your dog",
+    "interval": "Reminder every",
+    "intervalOptions": {
+      "weekly": "1 week",
+      "biweekly": "2 weeks",
+      "monthly": "1 month",
+      "off": "Off"
+    },
+    "language": "Language",
+    "units": "Weight unit",
+    "kg": "Kilograms (kg)",
+    "lbs": "Pounds (lbs)",
+    "enableNotifications": "Enable reminders",
+    "notifGranted": "Reminders enabled!",
+    "notifDenied": "Permission denied. Please enable in browser settings.",
+    "testNotif": "Send test reminder",
+    "appInfo": "About",
+    "version": "Version"
+  },
+  "install": {
+    "title": "Install the app",
+    "iosStep1": "Tap the",
+    "iosStep2": "Share button at the bottom of Safari",
+    "iosStep3": "Then tap \"Add to Home Screen\"",
+    "androidBtn": "Install app",
+    "dismiss": "Maybe later"
+  },
+  "errors": {
+    "weightInvalid": "Please enter a valid weight",
+    "weightTooLow": "Weight seems too low",
+    "weightTooHigh": "Weight seems too high",
+    "dateRequired": "Please select a date"
+  }
+}
