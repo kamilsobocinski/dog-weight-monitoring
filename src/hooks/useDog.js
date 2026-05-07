@@ -1,16 +1,30 @@
 import { useState, useEffect, useCallback } from 'react'
-import { getDog, saveDog, getWeights, addWeight, deleteWeight } from '../utils/db'
+import {
+  getAllDogs, addDog, updateDog, deleteDogById,
+  getWeights, addWeight, deleteWeight
+} from '../utils/db'
+
+const SELECTED_KEY = 'dwm-selected-dog-id'
 
 export function useDog() {
-  const [dog, setDog] = useState(null)
+  const [dogs, setDogs] = useState([])
+  const [selectedDogId, setSelectedDogId] = useState(null)
   const [weights, setWeights] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const reload = useCallback(async () => {
-    const d = await getDog()
-    setDog(d)
-    if (d) {
-      const w = await getWeights(d.id)
+  const reload = useCallback(async (keepDogId) => {
+    const allDogs = await getAllDogs()
+    setDogs(allDogs)
+
+    let id = keepDogId ?? parseInt(localStorage.getItem(SELECTED_KEY))
+    if (!id || !allDogs.find(d => d.id === id)) {
+      id = allDogs[0]?.id ?? null
+    }
+    if (id) localStorage.setItem(SELECTED_KEY, id)
+    setSelectedDogId(id)
+
+    if (id) {
+      const w = await getWeights(id)
       setWeights(w)
     } else {
       setWeights([])
@@ -20,21 +34,46 @@ export function useDog() {
 
   useEffect(() => { reload() }, [reload])
 
+  const dog = dogs.find(d => d.id === selectedDogId) ?? null
+
+  const selectDog = useCallback(async (id) => {
+    localStorage.setItem(SELECTED_KEY, id)
+    setSelectedDogId(id)
+    const w = await getWeights(id)
+    setWeights(w)
+  }, [])
+
   const saveDogProfile = useCallback(async (data) => {
-    await saveDog(data)
-    await reload()
+    if (data.id) {
+      const { id, ...rest } = data
+      await updateDog(id, rest)
+      await reload(id)
+    } else {
+      const newId = await addDog(data)
+      await reload(newId)
+    }
   }, [reload])
 
-  const addWeightEntry = useCallback(async (value, date, note) => {
-    if (!dog) return
-    await addWeight(dog.id, value, date, note)
+  const removeDog = useCallback(async (id) => {
+    await deleteDogById(id)
+    if (id === selectedDogId) localStorage.removeItem(SELECTED_KEY)
     await reload()
-  }, [dog, reload])
+  }, [selectedDogId, reload])
+
+  const addWeightEntry = useCallback(async (value, date, note) => {
+    if (!selectedDogId) return
+    await addWeight(selectedDogId, value, date, note)
+    const w = await getWeights(selectedDogId)
+    setWeights(w)
+  }, [selectedDogId])
 
   const removeWeight = useCallback(async (id) => {
     await deleteWeight(id)
-    await reload()
-  }, [reload])
+    if (selectedDogId) {
+      const w = await getWeights(selectedDogId)
+      setWeights(w)
+    }
+  }, [selectedDogId])
 
-  return { dog, weights, loading, saveDogProfile, addWeightEntry, removeWeight, reload }
+  return { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight }
 }

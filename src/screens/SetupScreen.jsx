@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { breeds } from '../data/breeds'
 import { Toast, useToast } from '../components/Toast'
 
-export function SetupScreen({ dog, onSave }) {
+export function SetupScreen({ dog, onSave, onCancel }) {
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
 
@@ -31,7 +31,9 @@ export function SetupScreen({ dog, onSave }) {
 
   const handleSave = () => {
     if (!validate()) return
-    onSave({ name: name.trim(), sex, birthdate, breedId: selectedBreed.id, breedName: selectedBreed.name })
+    const data = { name: name.trim(), sex, birthdate, breedId: selectedBreed.id, breedName: selectedBreed.name }
+    if (dog?.id) data.id = dog.id
+    onSave(data)
     showToast(t('setup.saved'))
   }
 
@@ -53,7 +55,10 @@ export function SetupScreen({ dog, onSave }) {
   return (
     <div className="screen">
       <div className="page-header">
-        <h1 className="page-title">🐶 {t('setup.title')}</h1>
+        <h1 className="page-title">🐶 {dog ? t('setup.editTitle') : t('setup.addTitle')}</h1>
+        {onCancel && (
+          <button className="btn btn-ghost" onClick={onCancel}>✕</button>
+        )}
       </div>
 
       <div className="form-group">

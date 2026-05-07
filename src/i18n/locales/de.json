@@ -24,7 +24,9 @@
     "fetchingRef": "Referenzdaten werden geladen...",
     "refFound": "Referenzdaten geladen",
     "refNotFound": "Keine Referenzdaten fuer diese Rasse gefunden",
-    "noBreedSelected": "Bitte zuerst eine Rasse auswaehlen"
+    "noBreedSelected": "Bitte zuerst eine Rasse auswaehlen",
+    "addTitle": "Hund hinzufuegen",
+    "editTitle": "Profil bearbeiten"
   },
   "weight": {
     "title": "Messung hinzufuegen",
@@ -90,7 +92,12 @@
     "notifDenied": "Berechtigung verweigert. Bitte in den Browser-Einstellungen aktivieren.",
     "testNotif": "Test-Erinnerung senden",
     "appInfo": "Ueber die App",
-    "version": "Version"
+    "version": "Version",
+    "addDog": "Hund hinzufuegen",
+    "confirmDelete": "{{name}} loeschen?",
+    "deleteWarning": "Alle Messungen werden dauerhaft geloescht.",
+    "confirmYes": "Ja, loeschen",
+    "confirmNo": "Abbrechen"
   },
   "install": {
     "title": "App installieren",

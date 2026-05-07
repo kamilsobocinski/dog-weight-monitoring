@@ -11,30 +11,12 @@ const INTERVALS = [
   { value: 'off',      days: 0  },
 ]
 
-async function scheduleReminder(intervalDays, title, body) {
-  if (!('Notification' in window)) return
-  const perm = await Notification.requestPermission()
-  if (perm !== 'granted') return false
-
-  // Store next fire time
-  if (intervalDays > 0) {
-    const next = Date.now() + intervalDays * 86400000
-    await setSetting('notif-next', next)
-    await setSetting('notif-interval', intervalDays)
-    await setSetting('notif-title', title)
-    await setSetting('notif-body', body)
-  } else {
-    await setSetting('notif-next', null)
-    await setSetting('notif-interval', 0)
-  }
-  return true
-}
-
-export function SettingsScreen({ dog, onEditDog }) {
+export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) {
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
   const [interval, setIntervalVal] = useState('biweekly')
   const [notifStatus, setNotifStatus] = useState('default')
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   useEffect(() => {
     getSetting('notif-interval').then(v => {
@@ -47,24 +29,17 @@ export function SettingsScreen({ dog, onEditDog }) {
   }, [])
 
   const handleEnableNotifications = async () => {
+    const perm = await Notification.requestPermission()
+    if (perm !== 'granted') { showToast(t('settings.notifDenied')); return }
     const days = INTERVALS.find(i => i.value === interval)?.days || 14
-    const dogName = dog?.name || 'your dog'
-    const ok = await scheduleReminder(
-      days,
-      `🐾 ${t('settings.notifications')}`,
-      `${t('weight.title')} — ${dogName}`
-    )
-    if (ok === false) {
-      showToast(t('settings.notifDenied'))
-    } else {
-      setNotifStatus('granted')
-      showToast(t('settings.notifGranted'))
-    }
+    await setSetting('notif-interval', days)
+    setNotifStatus('granted')
+    showToast(t('settings.notifGranted'))
   }
 
   const handleTestNotif = () => {
     if (Notification.permission === 'granted') {
-      new Notification(`🐾 Dog Weight Monitoring`, {
+      new Notification('🐾 Dog Weight Monitoring', {
         body: dog ? `${t('weight.title')} — ${dog.name}` : t('weight.title'),
         icon: '/icons/icon-192.png'
       })
@@ -76,6 +51,8 @@ export function SettingsScreen({ dog, onEditDog }) {
     const days = INTERVALS.find(i => i.value === val)?.days || 0
     await setSetting('notif-interval', days)
   }
+
+  const dogToDelete = confirmDeleteId ? dogs.find(d => d.id === confirmDeleteId) : null
 
   return (
     <div className="screen">
@@ -89,21 +66,58 @@ export function SettingsScreen({ dog, onEditDog }) {
         <LanguageSwitcher />
       </div>
 
-      {/* Dog Profile */}
+      {/* Dogs list */}
       <div className="card">
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>🐶 {t('settings.dogProfile')}</div>
-        {dog ? (
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 18, fontWeight: 700 }}>{dog.name}</div>
-            <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 2 }}>
-              {dog.breedName} · {dog.sex === 'female' ? t('setup.female') : t('setup.male')}
-            </div>
+
+        {dogs.map(d => (
+          <div key={d.id}>
+            {confirmDeleteId === d.id ? (
+              <div style={{ background: 'var(--red-light)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--red)', marginBottom: 8 }}>
+                  🗑 {t('settings.confirmDelete', { name: dogToDelete?.name })}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--red)', marginBottom: 10 }}>
+                  {t('settings.deleteWarning')}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button className="btn btn-danger" style={{ flex: 1, padding: '8px' }}
+                    onClick={() => { onDeleteDog(d.id); setConfirmDeleteId(null) }}>
+                    {t('settings.confirmYes')}
+                  </button>
+                  <button className="btn btn-secondary" style={{ flex: 1, padding: '8px' }}
+                    onClick={() => setConfirmDeleteId(null)}>
+                    {t('settings.confirmNo')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--gray-100)', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{d.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>
+                    {d.breedName} · {d.sex === 'female' ? t('setup.female') : t('setup.male')}
+                  </div>
+                </div>
+                {d.id === dog?.id && (
+                  <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: 13 }}
+                    onClick={onEditDog}>
+                    ✏️
+                  </button>
+                )}
+                {dogs.length > 1 && (
+                  <button className="btn btn-danger" style={{ padding: '6px 12px', fontSize: 13 }}
+                    onClick={() => setConfirmDeleteId(d.id)}>
+                    🗑
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-        ) : (
-          <div style={{ fontSize: 14, color: 'var(--gray-400)', marginBottom: 12 }}>—</div>
-        )}
-        <button className="btn btn-secondary" onClick={onEditDog} style={{ width: '100%' }}>
-          ✏️ {t('setup.save').replace('Save', 'Edit')} {t('settings.dogProfile')}
+        ))}
+
+        <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={onAddDog}>
+          + {t('settings.addDog')}
         </button>
       </div>
 
@@ -114,11 +128,7 @@ export function SettingsScreen({ dog, onEditDog }) {
 
         <div className="form-group">
           <label className="form-label">{t('settings.interval')}</label>
-          <select
-            className="form-select"
-            value={interval}
-            onChange={e => handleIntervalChange(e.target.value)}
-          >
+          <select className="form-select" value={interval} onChange={e => handleIntervalChange(e.target.value)}>
             {INTERVALS.map(i => (
               <option key={i.value} value={i.value}>{t(`settings.intervalOptions.${i.value}`)}</option>
             ))}
@@ -144,8 +154,7 @@ export function SettingsScreen({ dog, onEditDog }) {
         <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--gray-600)', marginBottom: 6 }}>
           🐾 Dog Weight Monitoring
         </div>
-        <div>v1.0.0 · PWA</div>
-        <div style={{ marginTop: 4 }}>100 breeds · PL / EN / DE / ES</div>
+        <div>v1.1.0 · PWA · 100 breeds · PL / EN / DE / ES</div>
       </div>
 
       <Toast message={toast} />

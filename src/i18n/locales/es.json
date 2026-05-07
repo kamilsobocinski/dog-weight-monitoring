@@ -24,7 +24,9 @@
     "fetchingRef": "Cargando datos de referencia...",
     "refFound": "Datos de referencia cargados",
     "refNotFound": "No se encontraron datos de referencia para esta raza",
-    "noBreedSelected": "Por favor selecciona primero una raza"
+    "noBreedSelected": "Por favor selecciona primero una raza",
+    "addTitle": "Añadir perro",
+    "editTitle": "Editar perfil"
   },
   "weight": {
     "title": "Añadir medición",
@@ -90,7 +92,12 @@
     "notifDenied": "Permiso denegado. Activa en la configuración del navegador.",
     "testNotif": "Enviar recordatorio de prueba",
     "appInfo": "Acerca de",
-    "version": "Versión"
+    "version": "Versión",
+    "addDog": "Añadir perro",
+    "confirmDelete": "¿Eliminar a {{name}}?",
+    "deleteWarning": "Todas las mediciones se eliminarán permanentemente.",
+    "confirmYes": "Sí, eliminar",
+    "confirmNo": "Cancelar"
   },
   "install": {
     "title": "Instalar la app",

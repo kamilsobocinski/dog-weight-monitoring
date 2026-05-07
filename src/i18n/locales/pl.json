@@ -24,7 +24,9 @@
     "fetchingRef": "Pobieranie danych wzorcowych...",
     "refFound": "Dane wzorcowe zaladowane",
     "refNotFound": "Brak danych wzorcowych dla tej rasy",
-    "noBreedSelected": "Najpierw wybierz rase"
+    "noBreedSelected": "Najpierw wybierz rase",
+    "addTitle": "Dodaj psa",
+    "editTitle": "Edytuj profil"
   },
   "weight": {
     "title": "Dodaj pomiar",
@@ -90,7 +92,12 @@
     "notifDenied": "Brak uprawnien. Wlacz w ustawieniach przegladarki.",
     "testNotif": "Wyslij testowe przypomnienie",
     "appInfo": "O aplikacji",
-    "version": "Wersja"
+    "version": "Wersja",
+    "addDog": "Dodaj psa",
+    "confirmDelete": "Usunac {{name}}?",
+    "deleteWarning": "Wszystkie pomiary zostana trwale usuniete.",
+    "confirmYes": "Tak, usun",
+    "confirmNo": "Anuluj"
   },
   "install": {
     "title": "Zainstaluj aplikacje",

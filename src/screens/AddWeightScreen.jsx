@@ -37,8 +37,9 @@ export function AddWeightScreen({ dog, onAdd, onNavigate }) {
         <div className="empty-state">
           <div className="empty-state-icon">🐶</div>
           <div className="empty-state-text">{t('setup.title')}</div>
-          <div className="empty-state-sub" style={{ marginTop: 16 }}>
-            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }} onClick={() => onNavigate('settings')}>
+          <div style={{ marginTop: 16 }}>
+            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }}
+              onClick={() => onNavigate('settings')}>
               {t('settings.dogProfile')} →
             </button>
           </div>
@@ -51,7 +52,14 @@ export function AddWeightScreen({ dog, onAdd, onNavigate }) {
     <div className="screen">
       <div className="page-header">
         <h1 className="page-title">⚖️ {t('weight.title')}</h1>
-        <span style={{ fontSize: 14, color: 'var(--gray-500)' }}>{dog.name}</span>
+        {/* Current dog badge top-right */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: 'var(--blue-light)', borderRadius: 99,
+          padding: '4px 12px', fontSize: 13, fontWeight: 700, color: 'var(--blue)'
+        }}>
+          🐾 {dog.name}
+        </div>
       </div>
 
       <div className="form-group">
@@ -66,7 +74,7 @@ export function AddWeightScreen({ dog, onAdd, onNavigate }) {
           value={value}
           onChange={e => setValue(e.target.value)}
           placeholder={t('weight.valuePlaceholder')}
-          style={{ fontSize: 28, fontWeight: 700, textAlign: 'center' }}
+          style={{ fontSize: 32, fontWeight: 700, textAlign: 'center', letterSpacing: 1 }}
         />
         {errors.value && <div className="form-error">{errors.value}</div>}
       </div>

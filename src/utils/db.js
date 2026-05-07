@@ -9,6 +9,28 @@ db.version(1).stores({
 })
 
 // --- Dogs ---
+export async function getAllDogs() {
+  return db.dogs.toArray()
+}
+
+export async function getDogById(id) {
+  return db.dogs.get(id)
+}
+
+export async function addDog(dog) {
+  return db.dogs.add(dog)
+}
+
+export async function updateDog(id, dog) {
+  return db.dogs.update(id, dog)
+}
+
+export async function deleteDogById(id) {
+  await db.weights.where('dogId').equals(id).delete()
+  await db.dogs.delete(id)
+}
+
+// legacy: keep for first-run migration
 export async function saveDog(dog) {
   const existing = await db.dogs.toArray()
   if (existing.length > 0) {
@@ -34,10 +56,6 @@ export async function getWeights(dogId) {
 
 export async function deleteWeight(id) {
   return db.weights.delete(id)
-}
-
-export async function updateWeight(id, data) {
-  return db.weights.update(id, data)
 }
 
 // --- Settings ---

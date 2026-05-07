@@ -42,8 +42,10 @@ function IconSettings() {
 export default function App() {
   const { t } = useTranslation()
   const [tab, setTab] = useState('dashboard')
-  const [editingDog, setEditingDog] = useState(false)
-  const { dog, weights, loading, saveDogProfile, addWeightEntry, removeWeight } = useDog()
+  // setupMode: null | 'add' | { dog } (edit)
+  const [setupMode, setSetupMode] = useState(null)
+
+  const { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight } = useDog()
 
   if (loading) {
     return (
@@ -55,24 +57,29 @@ export default function App() {
 
   const handleSaveDog = async (data) => {
     await saveDogProfile(data)
-    setEditingDog(false)
+    setSetupMode(null)
     setTab('dashboard')
   }
 
-  // First-run: no dog profile yet
-  if (!dog && !editingDog) {
+  // First-run: no dogs yet
+  if (dogs.length === 0 && !setupMode) {
     return (
       <div className="app">
-        <SetupScreen dog={null} onSave={handleSaveDog} />
+        <SetupScreen dog={null} onSave={handleSaveDog} onCancel={null} />
         <InstallPrompt />
       </div>
     )
   }
 
-  if (editingDog) {
+  if (setupMode !== null) {
+    const editDog = setupMode === 'add' ? null : setupMode
     return (
       <div className="app">
-        <SetupScreen dog={dog} onSave={handleSaveDog} />
+        <SetupScreen
+          dog={editDog}
+          onSave={handleSaveDog}
+          onCancel={() => setSetupMode(null)}
+        />
       </div>
     )
   }
@@ -86,10 +93,30 @@ export default function App() {
 
   return (
     <div className="app">
-      {tab === 'dashboard' && <DashboardScreen dog={dog} weights={weights} onNavigate={setTab} />}
-      {tab === 'add'       && <AddWeightScreen dog={dog} onAdd={addWeightEntry} onNavigate={setTab} />}
-      {tab === 'history'   && <HistoryScreen dog={dog} weights={weights} onDelete={removeWeight} />}
-      {tab === 'settings'  && <SettingsScreen dog={dog} onEditDog={() => setEditingDog(true)} />}
+      {tab === 'dashboard' && (
+        <DashboardScreen
+          dog={dog} dogs={dogs} weights={weights}
+          onSelectDog={selectDog} onNavigate={setTab}
+        />
+      )}
+      {tab === 'add' && (
+        <AddWeightScreen
+          dog={dog} onAdd={addWeightEntry} onNavigate={setTab}
+        />
+      )}
+      {tab === 'history' && (
+        <HistoryScreen
+          dog={dog} weights={weights} onDelete={removeWeight}
+        />
+      )}
+      {tab === 'settings' && (
+        <SettingsScreen
+          dog={dog} dogs={dogs}
+          onAddDog={() => setSetupMode('add')}
+          onEditDog={() => setSetupMode(dog)}
+          onDeleteDog={removeDog}
+        />
+      )}
 
       <nav className="bottom-nav">
         {NAV.map(n => (

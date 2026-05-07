@@ -24,7 +24,9 @@
     "fetchingRef": "Fetching reference data...",
     "refFound": "Reference data loaded",
     "refNotFound": "No reference data found for this breed",
-    "noBreedSelected": "Please select a breed first"
+    "noBreedSelected": "Please select a breed first",
+    "addTitle": "Add dog",
+    "editTitle": "Edit profile"
   },
   "weight": {
     "title": "Add measurement",
@@ -90,7 +92,12 @@
     "notifDenied": "Permission denied. Please enable in browser settings.",
     "testNotif": "Send test reminder",
     "appInfo": "About",
-    "version": "Version"
+    "version": "Version",
+    "addDog": "Add dog",
+    "confirmDelete": "Delete {{name}}?",
+    "deleteWarning": "All measurements will be permanently deleted.",
+    "confirmYes": "Yes, delete",
+    "confirmNo": "Cancel"
   },
   "install": {
     "title": "Install the app",

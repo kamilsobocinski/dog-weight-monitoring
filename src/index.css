@@ -153,6 +153,17 @@ html, body, #root {
 .status-high  { color: var(--orange); background: var(--orange-light); padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; display: inline-block; }
 .status-low   { color: var(--blue);   background: var(--blue-light);   padding: 2px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; display: inline-block; }
 
+/* ── Dog Selector ── */
+.dog-selector { position: relative; display: inline-block; }
+.dog-selector-btn { display: flex; align-items: center; gap: 6px; background: var(--gray-100); border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 16px; font-weight: 700; color: var(--gray-900); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dog-selector-arrow { font-size: 10px; color: var(--gray-400); transition: transform .2s; }
+.dog-selector-arrow.open { transform: rotate(180deg); }
+.dog-selector-list { position: absolute; top: calc(100% + 6px); left: 0; min-width: 180px; background: white; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); box-shadow: var(--shadow-lg); z-index: 100; overflow: hidden; }
+.dog-selector-option { display: flex; align-items: center; gap: 8px; padding: 12px 14px; font-size: 15px; cursor: pointer; border-bottom: 1px solid var(--gray-100); }
+.dog-selector-option:last-child { border-bottom: none; }
+.dog-selector-option:hover, .dog-selector-option:active { background: var(--blue-light); }
+.dog-selector-option.active { font-weight: 700; }
+
 .tag-group { display: flex; gap: 8px; }
 .tag-btn { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: var(--radius-sm); background: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all .15s; color: var(--gray-600); -webkit-tap-highlight-color: transparent; }
 .tag-btn.active { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }

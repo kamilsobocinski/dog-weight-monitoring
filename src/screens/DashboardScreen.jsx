@@ -1,11 +1,11 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ResponsiveContainer, Area, AreaChart
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer
 } from 'recharts'
 import { format, differenceInMonths, parseISO } from 'date-fns'
 import { getBreedById, getIdealWeightAtAge } from '../data/breeds'
+import { DogSelector } from '../components/DogSelector'
 
 function dogAge(birthdate, t) {
   if (!birthdate) return ''
@@ -18,8 +18,8 @@ function dogAge(birthdate, t) {
   return parts.join(' ') || `<1${t('dashboard.months')}`
 }
 
-export function DashboardScreen({ dog, weights, onNavigate }) {
-  const { t, i18n } = useTranslation()
+export function DashboardScreen({ dog, dogs, weights, onSelectDog, onNavigate }) {
+  const { t } = useTranslation()
 
   const breed = dog ? getBreedById(dog.breedId) : null
 
@@ -37,9 +37,7 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
 
   const trend = useMemo(() => {
     if (weights.length < 2) return 'stable'
-    const last = weights[weights.length - 1].value
-    const prev = weights[weights.length - 2].value
-    const diff = last - prev
+    const diff = weights[weights.length - 1].value - weights[weights.length - 2].value
     if (Math.abs(diff) < 0.1) return 'stable'
     return diff > 0 ? 'up' : 'down'
   }, [weights])
@@ -51,14 +49,12 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
     return 'good'
   }, [latestWeight, idealRange])
 
-  const chartData = useMemo(() => {
-    return weights.map(w => ({
-      date: format(parseISO(w.date), 'd MMM', { locale: undefined }),
-      weight: w.value,
-      min: idealRange?.min,
-      max: idealRange?.max,
-    }))
-  }, [weights, idealRange])
+  const chartData = useMemo(() => weights.map(w => ({
+    date: format(parseISO(w.date), 'd MMM'),
+    weight: w.value,
+    min: idealRange?.min,
+    max: idealRange?.max,
+  })), [weights, idealRange])
 
   if (!dog) {
     return (
@@ -67,7 +63,8 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
           <div className="empty-state-icon">🐾</div>
           <div className="empty-state-text">{t('dashboard.noData')}</div>
           <div style={{ marginTop: 20 }}>
-            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }} onClick={() => onNavigate('settings')}>
+            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }}
+              onClick={() => onNavigate('settings')}>
               {t('setup.title')} →
             </button>
           </div>
@@ -78,22 +75,21 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
 
   return (
     <div className="screen">
+      {/* Header with dog selector */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">🐾 {dog.name}</h1>
-          <div style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 2 }}>
+          <DogSelector dogs={dogs} selectedDog={dog} onSelect={onSelectDog} />
+          <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 4 }}>
             {dog.breedName} · {dogAge(dog.birthdate, t)}
           </div>
         </div>
       </div>
 
-      {/* Stats grid */}
+      {/* Stats */}
       <div className="stat-grid">
         <div className="stat-card">
           <div className="stat-label">{t('dashboard.currentWeight')}</div>
-          <div className="stat-value">
-            {latestWeight ? `${latestWeight.value} kg` : '—'}
-          </div>
+          <div className="stat-value">{latestWeight ? `${latestWeight.value} kg` : '—'}</div>
           {status && (
             <div className="stat-sub">
               <span className={`status-${status}`}>
@@ -103,7 +99,6 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
             </div>
           )}
         </div>
-
         <div className="stat-card">
           <div className="stat-label">{t('dashboard.idealRange')}</div>
           <div className="stat-value" style={{ fontSize: 16 }}>
@@ -111,7 +106,6 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
           </div>
           <div className="stat-sub">kg</div>
         </div>
-
         <div className="stat-card">
           <div className="stat-label">{t('dashboard.trend')}</div>
           <div className="stat-value" style={{ fontSize: 18 }}>
@@ -119,13 +113,12 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
              trend === 'down' ? t('dashboard.trendDown') : t('dashboard.trendStable')}
           </div>
         </div>
-
         <div className="stat-card">
           <div className="stat-label">{t('dashboard.lastMeasured')}</div>
           <div className="stat-value" style={{ fontSize: 16 }}>
             {latestWeight ? format(parseISO(latestWeight.date), 'dd.MM.yy') : '—'}
           </div>
-          <div className="stat-sub">{weights.length} {weights.length === 1 ? 'entry' : 'entries'}</div>
+          <div className="stat-sub">{weights.length} entries</div>
         </div>
       </div>
 
@@ -152,15 +145,8 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
                 <ReferenceLine y={idealRange.max} stroke="#dc2626" strokeDasharray="4 2" strokeWidth={1.5}
                   label={{ value: `max ${idealRange.max}`, fill: '#dc2626', fontSize: 10, position: 'right' }} />
               )}
-              <Line
-                type="monotone"
-                dataKey="weight"
-                stroke="#2563eb"
-                strokeWidth={2.5}
-                dot={{ fill: '#2563eb', r: 4 }}
-                activeDot={{ r: 6 }}
-                name={t('dashboard.yourDog')}
-              />
+              <Line type="monotone" dataKey="weight" stroke="#2563eb" strokeWidth={2.5}
+                dot={{ fill: '#2563eb', r: 4 }} activeDot={{ r: 6 }} name={t('dashboard.yourDog')} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -169,14 +155,15 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
           <div className="empty-state-icon">📊</div>
           <div className="empty-state-text">{t('dashboard.noData')}</div>
           <div style={{ marginTop: 20 }}>
-            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }} onClick={() => onNavigate('add')}>
+            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }}
+              onClick={() => onNavigate('add')}>
               + {t('weight.title')}
             </button>
           </div>
         </div>
       )}
 
-      {/* Ideal weight banner */}
+      {/* Status banner */}
       {idealRange && latestWeight && (
         <div className="card" style={{
           background: status === 'good' ? 'var(--green-light)' : status === 'high' ? 'var(--orange-light)' : 'var(--blue-light)',
@@ -185,10 +172,10 @@ export function DashboardScreen({ dog, weights, onNavigate }) {
           <div style={{ fontWeight: 700, fontSize: 15 }}>
             {status === 'good' && `✅ ${t('dashboard.withinRange')}`}
             {status === 'high' && `⚠️ ${(latestWeight.value - idealRange.max).toFixed(1)} kg ${t('dashboard.above')}`}
-            {status === 'low' && `ℹ️ ${(idealRange.min - latestWeight.value).toFixed(1)} kg ${t('dashboard.below')}`}
+            {status === 'low'  && `ℹ️ ${(idealRange.min - latestWeight.value).toFixed(1)} kg ${t('dashboard.below')}`}
           </div>
           <div style={{ fontSize: 13, marginTop: 4, opacity: .8 }}>
-            {t('dashboard.idealRange')}: {idealRange.min}–{idealRange.max} kg ({t('dashboard.comparedToIdeal')})
+            {t('dashboard.idealRange')}: {idealRange.min}–{idealRange.max} kg
           </div>
         </div>
       )}
