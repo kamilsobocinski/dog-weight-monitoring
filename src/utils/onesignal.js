@@ -30,20 +30,38 @@ export function initOneSignal() {
   })
 }
 
-/** Ask the user for push-notification permission via OneSignal.
- *  Falls back to the native Notification API if OneSignal times out. */
+/** Ask the user for push-notification permission.
+ *  iOS requires requestPermission() to be called synchronously inside a
+ *  user-gesture handler — calling it after an async timeout loses the gesture
+ *  context and silently returns 'denied'.  So we request native permission
+ *  first, then let OneSignal subscribe once we have it. */
 export async function requestPushPermission() {
-  try {
-    return await withOS(async (OS) => {
-      await OS.User.PushSubscription.optIn()
-      return !!OS.User.PushSubscription.optedIn
-    })
-  } catch (e) {
-    console.warn('[OneSignal] optIn failed, using native Notification API', e)
-    if (!('Notification' in window)) return false
+  if (!('Notification' in window)) return false
+
+  // Step 1 — native permission dialog (must happen while gesture context is live)
+  if (Notification.permission === 'default') {
+    console.log('[Notif] calling native requestPermission in gesture context')
     const perm = await Notification.requestPermission()
-    return perm === 'granted'
+    console.log('[Notif] native permission result:', perm)
+    if (perm !== 'granted') return false
   }
+
+  if (Notification.permission !== 'granted') {
+    console.log('[Notif] permission not granted:', Notification.permission)
+    return false
+  }
+
+  // Step 2 — now that the OS granted permission, let OneSignal subscribe
+  try {
+    await withOS(async (OS) => {
+      await OS.User.PushSubscription.optIn()
+      console.log('[Notif] OneSignal optedIn:', OS.User.PushSubscription.optedIn)
+    }, 6000)
+  } catch (e) {
+    console.warn('[OneSignal] optIn failed (non-fatal, native permission already granted)', e)
+  }
+
+  return true
 }
 
 /** Is the user currently subscribed to push? */
