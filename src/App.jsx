@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDog } from './hooks/useDog'
+import { checkAndShowNotification } from './utils/notifications'
 import { DashboardScreen } from './screens/DashboardScreen'
 import { AddWeightScreen } from './screens/AddWeightScreen'
 import { HistoryScreen } from './screens/HistoryScreen'
@@ -46,6 +47,21 @@ export default function App() {
   const [setupMode, setSetupMode] = useState(null)
 
   const { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight } = useDog()
+
+  // Check for due notifications on every app open; also arm a setTimeout if
+  // the next one fires within the next 12 hours (so it triggers while app is open).
+  useEffect(() => {
+    if (!dog) return
+    let timer
+    checkAndShowNotification(dog).then(nextDate => {
+      if (!nextDate) return
+      const ms = nextDate.getTime() - Date.now()
+      if (ms > 0 && ms < 12 * 60 * 60 * 1000) {
+        timer = setTimeout(() => checkAndShowNotification(dog), ms)
+      }
+    })
+    return () => clearTimeout(timer)
+  }, [dog])
 
   if (loading) {
     return (

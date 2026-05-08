@@ -78,6 +78,9 @@
     "notificationsDesc": "Recuerda pesar a tu perro",
     "interval": "Recordar cada",
     "intervalOptions": {
+      "daily": "Todos los dias",
+      "every2days": "Cada 2 dias",
+      "every3days": "Cada 3 dias",
       "weekly": "1 semana",
       "biweekly": "2 semanas",
       "monthly": "1 mes",
@@ -97,7 +100,9 @@
     "confirmDelete": "¿Eliminar a {{name}}?",
     "deleteWarning": "Todas las mediciones se eliminarán permanentemente.",
     "confirmYes": "Sí, eliminar",
-    "confirmNo": "Cancelar"
+    "confirmNo": "Cancelar",
+    "notifTime": "Hora del recordatorio",
+    "notifNext": "Proximo recordatorio"
   },
   "install": {
     "title": "Instalar la app",

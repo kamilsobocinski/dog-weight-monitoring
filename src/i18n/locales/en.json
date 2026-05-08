@@ -78,6 +78,9 @@
     "notificationsDesc": "Get reminded to weigh your dog",
     "interval": "Reminder every",
     "intervalOptions": {
+      "daily": "Every day",
+      "every2days": "Every 2 days",
+      "every3days": "Every 3 days",
       "weekly": "1 week",
       "biweekly": "2 weeks",
       "monthly": "1 month",
@@ -97,7 +100,9 @@
     "confirmDelete": "Delete {{name}}?",
     "deleteWarning": "All measurements will be permanently deleted.",
     "confirmYes": "Yes, delete",
-    "confirmNo": "Cancel"
+    "confirmNo": "Cancel",
+    "notifTime": "Reminder time",
+    "notifNext": "Next reminder"
   },
   "install": {
     "title": "Install the app",

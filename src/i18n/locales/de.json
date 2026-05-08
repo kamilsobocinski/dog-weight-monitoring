@@ -78,6 +78,9 @@
     "notificationsDesc": "Erinnerung zum Wiegen des Hundes",
     "interval": "Erinnerung alle",
     "intervalOptions": {
+      "daily": "Taeglich",
+      "every2days": "Alle 2 Tage",
+      "every3days": "Alle 3 Tage",
       "weekly": "1 Woche",
       "biweekly": "2 Wochen",
       "monthly": "1 Monat",
@@ -97,7 +100,9 @@
     "confirmDelete": "{{name}} loeschen?",
     "deleteWarning": "Alle Messungen werden dauerhaft geloescht.",
     "confirmYes": "Ja, loeschen",
-    "confirmNo": "Abbrechen"
+    "confirmNo": "Abbrechen",
+    "notifTime": "Erinnerungszeit",
+    "notifNext": "Naechste Erinnerung"
   },
   "install": {
     "title": "App installieren",

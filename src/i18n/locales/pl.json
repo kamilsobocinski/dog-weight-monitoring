@@ -78,6 +78,9 @@
     "notificationsDesc": "Przypomnienie o wazeniu psa",
     "interval": "Przypominaj co",
     "intervalOptions": {
+      "daily": "Codziennie",
+      "every2days": "Co 2 dni",
+      "every3days": "Co 3 dni",
       "weekly": "1 tydzien",
       "biweekly": "2 tygodnie",
       "monthly": "1 miesiac",
@@ -97,7 +100,9 @@
     "confirmDelete": "Usunac {{name}}?",
     "deleteWarning": "Wszystkie pomiary zostana trwale usuniete.",
     "confirmYes": "Tak, usun",
-    "confirmNo": "Anuluj"
+    "confirmNo": "Anuluj",
+    "notifTime": "Godzina przypomnienia",
+    "notifNext": "Nastepne przypomnienie"
   },
   "install": {
     "title": "Zainstaluj aplikacje",
