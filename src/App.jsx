@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useDog } from './hooks/useDog'
-import { checkAndShowNotification } from './utils/notifications'
+import { checkAndShowNotification, calcNextNotif } from './utils/notifications'
+import { initOneSignal, isPushSubscribed, scheduleNextNotification } from './utils/onesignal'
+import { getSetting, setSetting } from './utils/db'
 import { DashboardScreen } from './screens/DashboardScreen'
 import { AddWeightScreen } from './screens/AddWeightScreen'
 import { HistoryScreen } from './screens/HistoryScreen'
@@ -48,19 +50,41 @@ export default function App() {
 
   const { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight } = useDog()
 
-  // Check for due notifications on every app open; also arm a setTimeout if
-  // the next one fires within the next 12 hours (so it triggers while app is open).
+  // Initialise OneSignal SDK once (no-op if already done)
+  useEffect(() => { initOneSignal() }, [])
+
+  // On every app open: if the scheduled push notification was due (or chain broke),
+  // reschedule the next one via OneSignal so the reminder keeps repeating.
   useEffect(() => {
     if (!dog) return
-    let timer
-    checkAndShowNotification(dog).then(nextDate => {
-      if (!nextDate) return
-      const ms = nextDate.getTime() - Date.now()
-      if (ms > 0 && ms < 12 * 60 * 60 * 1000) {
-        timer = setTimeout(() => checkAndShowNotification(dog), ms)
+    async function maintainChain() {
+      const osSubscribed = await isPushSubscribed()
+      const days = await getSetting('notif-interval')
+      const time = (await getSetting('notif-time')) || '08:00'
+      if (!days || days === 0) return
+
+      if (osSubscribed) {
+        // OneSignal path: check if the scheduled notification is past-due
+        const nextStr = await getSetting('notif-next')
+        if (!nextStr || new Date(nextStr) <= new Date()) {
+          const next = calcNextNotif(days, time)
+          await setSetting('notif-next', next.toISOString())
+          scheduleNextNotification(days, time, dog.name)
+        }
+      } else {
+        // Fallback (no push subscription): show in-app notification when open
+        let timer
+        checkAndShowNotification(dog).then(nextDate => {
+          if (!nextDate) return
+          const ms = nextDate.getTime() - Date.now()
+          if (ms > 0 && ms < 12 * 60 * 60 * 1000) {
+            timer = setTimeout(() => checkAndShowNotification(dog), ms)
+          }
+        })
+        return () => clearTimeout(timer)
       }
-    })
-    return () => clearTimeout(timer)
+    }
+    maintainChain()
   }, [dog])
 
   if (loading) {

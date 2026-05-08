@@ -25,6 +25,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globIgnores: ['**/OneSignalSDK*'],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/api\.thedogapi\.com\/.*/i,

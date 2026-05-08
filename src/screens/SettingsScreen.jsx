@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
 import { getSetting, setSetting } from '../utils/db'
 import { calcNextNotif } from '../utils/notifications'
+import { requestPushPermission, isPushSubscribed, scheduleNextNotification } from '../utils/onesignal'
 import { Toast, useToast } from '../components/Toast'
 
 const INTERVALS = [
@@ -24,56 +25,68 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
 
-  const [interval,         setIntervalVal]    = useState('every2days')
-  const [notifTime,        setNotifTime]      = useState('08:00')
-  const [nextNotif,        setNextNotif]      = useState(null)   // Date | null
-  const [notifStatus,      setNotifStatus]    = useState('default')
-  const [confirmDeleteId,  setConfirmDeleteId] = useState(null)
+  const [interval,        setIntervalVal]    = useState('every2days')
+  const [notifTime,       setNotifTime]      = useState('08:00')
+  const [nextNotif,       setNextNotif]      = useState(null)
+  const [subscribed,      setSubscribed]     = useState(false)
+  const [enabling,        setEnabling]       = useState(false)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
-  // Load saved settings
+  // Load saved settings + check subscription status
   useEffect(() => {
     getSetting('notif-interval').then(v => { if (v != null) setIntervalVal(daysToValue(v)) })
     getSetting('notif-time').then(v    => { if (v) setNotifTime(v) })
     getSetting('notif-next').then(v    => { if (v) setNextNotif(new Date(v)) })
-    if ('Notification' in window) setNotifStatus(Notification.permission)
+    isPushSubscribed().then(setSubscribed)
   }, [])
 
-  // Save new next-notification time whenever interval or time changes
-  const saveNext = async (days, time) => {
-    if (days > 0 && Notification.permission === 'granted') {
-      const next = calcNextNotif(days, time)
-      await setSetting('notif-next', next.toISOString())
-      setNextNotif(next)
-    }
+  // Reschedule helper — saves to DB + calls OneSignal API
+  const reschedule = async (days, time) => {
+    if (days === 0 || !subscribed) return null
+    const next = calcNextNotif(days, time)
+    await setSetting('notif-next', next.toISOString())
+    setNextNotif(next)
+    // Fire-and-forget to backend
+    scheduleNextNotification(days, time, dog?.name)
+    return next
   }
 
   const handleIntervalChange = async (val) => {
     setIntervalVal(val)
     const days = INTERVALS.find(i => i.value === val)?.days ?? 0
     await setSetting('notif-interval', days)
-    await saveNext(days, notifTime)
+    await reschedule(days, notifTime)
   }
 
   const handleTimeChange = async (val) => {
     setNotifTime(val)
     await setSetting('notif-time', val)
     const days = INTERVALS.find(i => i.value === interval)?.days ?? 0
-    await saveNext(days, val)
+    await reschedule(days, val)
   }
 
   const handleEnableNotifications = async () => {
-    const perm = await Notification.requestPermission()
-    if (perm !== 'granted') { showToast(t('settings.notifDenied')); return }
-    const days = INTERVALS.find(i => i.value === interval)?.days ?? 14
-    await setSetting('notif-interval', days)
-    await setSetting('notif-time', notifTime)
-    setNotifStatus('granted')
-    if (days > 0) {
-      const next = calcNextNotif(days, notifTime)
-      await setSetting('notif-next', next.toISOString())
-      setNextNotif(next)
+    setEnabling(true)
+    try {
+      const granted = await requestPushPermission()
+      if (!granted) { showToast(t('settings.notifDenied')); return }
+
+      const days = INTERVALS.find(i => i.value === interval)?.days ?? 14
+      await setSetting('notif-interval', days)
+      await setSetting('notif-time', notifTime)
+      setSubscribed(true)
+
+      if (days > 0) {
+        const next = calcNextNotif(days, notifTime)
+        await setSetting('notif-next', next.toISOString())
+        setNextNotif(next)
+        scheduleNextNotification(days, notifTime, dog?.name)
+      }
+
+      showToast(t('settings.notifGranted'))
+    } finally {
+      setEnabling(false)
     }
-    showToast(t('settings.notifGranted'))
   }
 
   const handleTestNotif = () => {
@@ -87,9 +100,8 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
     }
   }
 
-  const dogToDelete = confirmDeleteId ? dogs.find(d => d.id === confirmDeleteId) : null
-  const notifEnabled = notifStatus === 'granted'
-  const intervalDays = INTERVALS.find(i => i.value === interval)?.days ?? 0
+  const dogToDelete   = confirmDeleteId ? dogs.find(d => d.id === confirmDeleteId) : null
+  const intervalDays  = INTERVALS.find(i => i.value === interval)?.days ?? 0
 
   return (
     <div className="screen">
@@ -183,9 +195,12 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
         )}
 
         {/* Enable / status row */}
-        {!notifEnabled ? (
-          <button className="btn btn-primary" onClick={handleEnableNotifications}>
-            🔔 {t('settings.enableNotifications')}
+        {!subscribed ? (
+          <button className="btn btn-primary" onClick={handleEnableNotifications} disabled={enabling}>
+            {enabling
+              ? <><span className="spinner" style={{ width: 14, height: 14 }} /> {t('settings.enableNotifications')}</>
+              : <>🔔 {t('settings.enableNotifications')}</>
+            }
           </button>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -193,7 +208,7 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
               ✓ {t('settings.notifGranted')}
             </div>
 
-            {/* Next notification date */}
+            {/* Next scheduled reminder */}
             {nextNotif && intervalDays > 0 && (
               <div style={{ fontSize: 12, color: 'var(--gray-500)' }}>
                 🕐 {t('settings.notifNext')}: {format(nextNotif, 'dd.MM.yyyy HH:mm')}
