@@ -3,11 +3,15 @@ const SAFARI_WEB_ID = 'web.onesignal.auto.30b8db8e-86b1-4367-8886-055d3d362718'
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-/** Run a callback once the OneSignal SDK is ready */
-function withOS(fn) {
-  return new Promise(resolve => {
+/** Run a callback once the OneSignal SDK is ready (times out after ms) */
+function withOS(fn, ms = 6000) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('OneSignal timeout')), ms)
     window.OneSignalDeferred = window.OneSignalDeferred || []
-    window.OneSignalDeferred.push(async (OS) => resolve(await fn(OS)))
+    window.OneSignalDeferred.push(async (OS) => {
+      clearTimeout(t)
+      try { resolve(await fn(OS)) } catch (e) { reject(e) }
+    })
   })
 }
 
@@ -26,17 +30,29 @@ export function initOneSignal() {
   })
 }
 
-/** Ask the user for push-notification permission via OneSignal */
+/** Ask the user for push-notification permission via OneSignal.
+ *  Falls back to the native Notification API if OneSignal times out. */
 export async function requestPushPermission() {
-  return withOS(async (OS) => {
-    await OS.User.PushSubscription.optIn()
-    return !!OS.User.PushSubscription.optedIn
-  })
+  try {
+    return await withOS(async (OS) => {
+      await OS.User.PushSubscription.optIn()
+      return !!OS.User.PushSubscription.optedIn
+    })
+  } catch (e) {
+    console.warn('[OneSignal] optIn failed, using native Notification API', e)
+    if (!('Notification' in window)) return false
+    const perm = await Notification.requestPermission()
+    return perm === 'granted'
+  }
 }
 
 /** Is the user currently subscribed to push? */
 export async function isPushSubscribed() {
-  return withOS(async (OS) => !!OS.User.PushSubscription.optedIn)
+  try {
+    return await withOS(async (OS) => !!OS.User.PushSubscription.optedIn, 3000)
+  } catch {
+    return Notification.permission === 'granted'
+  }
 }
 
 /** OneSignal subscription ID for this device */
