@@ -93,6 +93,7 @@
     "enableNotifications": "Activar recordatorios",
     "notifGranted": "¡Recordatorios activados!",
     "notifDenied": "Permiso denegado. Activa en la configuración del navegador.",
+    "notifBlocked": "Las notificaciones están bloqueadas por el sistema. Elimina la app del inicio, vuelve a añadirla e inténtalo de nuevo.",
     "testNotif": "Enviar recordatorio de prueba",
     "appInfo": "Acerca de",
     "version": "Versión",

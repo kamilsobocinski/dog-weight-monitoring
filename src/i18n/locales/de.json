@@ -93,6 +93,7 @@
     "enableNotifications": "Erinnerungen aktivieren",
     "notifGranted": "Erinnerungen aktiviert!",
     "notifDenied": "Berechtigung verweigert. Bitte in den Browser-Einstellungen aktivieren.",
+    "notifBlocked": "Benachrichtigungen sind vom System gesperrt. App vom Home-Screen entfernen, neu hinzufuegen und erneut versuchen.",
     "testNotif": "Test-Erinnerung senden",
     "appInfo": "Ueber die App",
     "version": "Version",

@@ -68,7 +68,20 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
   const handleEnableNotifications = async () => {
     setEnabling(true)
     try {
+      // Diagnostics — visible in Safari DevTools console
+      console.log('[Notif] Notification in window:', 'Notification' in window)
+      if ('Notification' in window) {
+        console.log('[Notif] Notification.permission:', Notification.permission)
+      }
+
+      // If already hard-blocked by the OS, bail out immediately with a clear message
+      if ('Notification' in window && Notification.permission === 'denied') {
+        showToast(t('settings.notifBlocked'))
+        return
+      }
+
       const granted = await requestPushPermission()
+      console.log('[Notif] granted:', granted)
       if (!granted) { showToast(t('settings.notifDenied')); return }
 
       const days = INTERVALS.find(i => i.value === interval)?.days ?? 14

@@ -93,6 +93,7 @@
     "enableNotifications": "Wlacz przypomnienia",
     "notifGranted": "Przypomnienia wlaczone!",
     "notifDenied": "Brak uprawnien. Wlacz w ustawieniach przegladarki.",
+    "notifBlocked": "Powiadomienia sa zablokowane przez system. Usun aplikacje z ekranu glownego, dodaj ponownie i sprobuj jeszcze raz.",
     "testNotif": "Wyslij testowe przypomnienie",
     "appInfo": "O aplikacji",
     "version": "Wersja",

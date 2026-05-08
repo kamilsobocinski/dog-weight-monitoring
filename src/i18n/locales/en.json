@@ -93,6 +93,7 @@
     "enableNotifications": "Enable reminders",
     "notifGranted": "Reminders enabled!",
     "notifDenied": "Permission denied. Please enable in browser settings.",
+    "notifBlocked": "Notifications are blocked by the system. Remove the app from your home screen, re-add it, and try again.",
     "testNotif": "Send test reminder",
     "appInfo": "About",
     "version": "Version",
