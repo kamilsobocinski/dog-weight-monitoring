@@ -241,6 +241,9 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
           🐾 Dog Weight Monitoring
         </div>
         <div>v1.2.0 · PWA · 100 breeds · PL / EN / DE / ES</div>
+        <div style={{ marginTop: 8, fontSize: 12 }}>
+          Developed by Kamil Sobociński · No rights reserved
+        </div>
       </div>
 
       <Toast message={toast} />
