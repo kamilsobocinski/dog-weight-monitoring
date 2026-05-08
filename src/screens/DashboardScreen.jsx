@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ReferenceLine, ReferenceArea, ResponsiveContainer,
 } from 'recharts'
 import { format, differenceInMonths, parseISO } from 'date-fns'
 import { getBreedById, getIdealWeightAtAge } from '../data/breeds'
@@ -52,9 +53,15 @@ export function DashboardScreen({ dog, dogs, weights, onSelectDog, onNavigate })
   const chartData = useMemo(() => weights.map(w => ({
     date: format(parseISO(w.date), 'd MMM'),
     weight: w.value,
-    min: idealRange?.min,
-    max: idealRange?.max,
-  })), [weights, idealRange])
+  })), [weights])
+
+  // YAxis domain — always shows the full green band
+  const yDomain = useMemo(() => {
+    const vals = weights.map(w => w.value)
+    if (idealRange) { vals.push(idealRange.min, idealRange.max) }
+    if (!vals.length) return ['auto', 'auto']
+    return [+(Math.min(...vals) * 0.93).toFixed(1), +(Math.max(...vals) * 1.07).toFixed(1)]
+  }, [weights, idealRange])
 
   if (!dog) {
     return (
@@ -132,18 +139,26 @@ export function DashboardScreen({ dog, dogs, weights, onSelectDog, onNavigate })
             <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--gray-400)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--gray-400)' }} domain={['auto', 'auto']} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--gray-400)' }} domain={yDomain} />
               <Tooltip
                 contentStyle={{ borderRadius: 8, border: '1px solid var(--gray-200)', fontSize: 13 }}
                 formatter={(v) => [`${v} kg`]}
               />
+              {/* Semi-transparent green band = ideal weight range */}
               {idealRange && (
-                <ReferenceLine y={idealRange.min} stroke="#16a34a" strokeDasharray="4 2" strokeWidth={1.5}
-                  label={{ value: `min ${idealRange.min}`, fill: '#16a34a', fontSize: 10, position: 'right' }} />
+                <ReferenceArea
+                  y1={idealRange.min} y2={idealRange.max}
+                  fill="#16a34a" fillOpacity={0.15}
+                  stroke="#16a34a" strokeOpacity={0.5} strokeWidth={1}
+                />
               )}
               {idealRange && (
-                <ReferenceLine y={idealRange.max} stroke="#dc2626" strokeDasharray="4 2" strokeWidth={1.5}
-                  label={{ value: `max ${idealRange.max}`, fill: '#dc2626', fontSize: 10, position: 'right' }} />
+                <ReferenceLine y={idealRange.min} stroke="#16a34a" strokeDasharray="4 2" strokeWidth={1}
+                  label={{ value: `${idealRange.min} kg`, fill: '#16a34a', fontSize: 10, position: 'insideTopRight' }} />
+              )}
+              {idealRange && (
+                <ReferenceLine y={idealRange.max} stroke="#16a34a" strokeDasharray="4 2" strokeWidth={1}
+                  label={{ value: `${idealRange.max} kg`, fill: '#16a34a', fontSize: 10, position: 'insideBottomRight' }} />
               )}
               <Line type="monotone" dataKey="weight" stroke="#2563eb" strokeWidth={2.5}
                 dot={{ fill: '#2563eb', r: 4 }} activeDot={{ r: 6 }} name={t('dashboard.yourDog')} />
