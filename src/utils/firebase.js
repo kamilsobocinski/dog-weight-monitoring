@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -19,8 +19,22 @@ export const db   = getFirestore(app)
 
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider()
-  // signInWithRedirect works reliably on iOS Safari / PWA (popup is blocked)
-  await signInWithRedirect(auth, provider)
+  // Try popup first (works on Android PWA + desktop).
+  // Falls back to redirect for iOS Safari where popups are blocked.
+  try {
+    await signInWithPopup(auth, provider)
+  } catch (err) {
+    if (
+      err.code === 'auth/popup-blocked' ||
+      err.code === 'auth/popup-closed-by-user' ||
+      err.code === 'auth/cancelled-popup-request'
+    ) {
+      // Popup was blocked → fall back to redirect
+      await signInWithRedirect(auth, provider)
+    } else {
+      throw err
+    }
+  }
 }
 
 /** Call once on app mount — resolves user if returning from Google redirect */

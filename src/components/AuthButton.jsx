@@ -28,7 +28,13 @@ export function AuthButton({ user, syncing, lastSync, onBackup }) {
       <button
         className="btn btn-secondary"
         style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', width: '100%', justifyContent: 'center' }}
-        onClick={signInWithGoogle}
+        onClick={async () => {
+          try {
+            await signInWithGoogle()
+          } catch (err) {
+            alert('Błąd logowania: ' + (err?.message || err?.code || String(err)))
+          }
+        }}
       >
         <GoogleLogo />
         {t('auth.signInGoogle')}
