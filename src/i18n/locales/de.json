@@ -110,7 +110,7 @@
   },
   "health": {
     "title": "Gesundheit",
-    "tabs": { "vaccinations": "Impfungen", "deworming": "Entwurmung", "parasites": "Zecken/Flöhe" },
+    "tabs": { "weight": "Gewicht", "vaccinations": "Impfungen", "deworming": "Entwurmung", "parasites": "Zecken/Flöhe" },
     "add": "Hinzufuegen",
     "save": "Speichern",
     "delete": "Loeschen",

@@ -133,17 +133,16 @@ export default function App() {
   }
 
   const NAV = [
-    { id: 'dashboard', icon: <IconDashboard />, label: t('nav.dashboard') },
+    { id: 'dashboard', icon: <IconHealth />,    label: t('nav.health') },
     { id: 'add',       icon: <IconAdd />,       label: t('nav.add') },
     { id: 'history',   icon: <IconHistory />,   label: t('nav.history') },
-    { id: 'health',    icon: <IconHealth />,    label: t('nav.health') },
     { id: 'settings',  icon: <IconSettings />,  label: t('nav.settings') },
   ]
 
   return (
     <div className="app">
       {tab === 'dashboard' && (
-        <DashboardScreen
+        <HealthScreen
           dog={dog} dogs={dogs} weights={weights}
           onSelectDog={selectDog} onNavigate={setTab}
         />
@@ -157,9 +156,6 @@ export default function App() {
         <HistoryScreen
           dog={dog} weights={weights} onDelete={removeWeight}
         />
-      )}
-      {tab === 'health' && (
-        <HealthScreen dog={dog} />
       )}
       {tab === 'settings' && (
         <SettingsScreen

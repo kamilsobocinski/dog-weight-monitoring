@@ -110,7 +110,7 @@
   },
   "health": {
     "title": "Salud",
-    "tabs": { "vaccinations": "Vacunas", "deworming": "Desparasitación", "parasites": "Garrapatas/Pulgas" },
+    "tabs": { "weight": "Peso", "vaccinations": "Vacunas", "deworming": "Desparasitación", "parasites": "Garrapatas/Pulgas" },
     "add": "Añadir",
     "save": "Guardar",
     "delete": "Eliminar",

@@ -240,7 +240,7 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
         <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--gray-600)', marginBottom: 6 }}>
           🐾 Dog Weight Monitoring
         </div>
-        <div>v1.4.1 · PWA · 100 breeds · PL / EN / DE / ES</div>
+        <div>v1.5.0 · PWA · 100 breeds · PL / EN / DE / ES</div>
         <div style={{ marginTop: 8, fontSize: 12 }}>
           Developed by Kamil Sobociński · No rights reserved
         </div>

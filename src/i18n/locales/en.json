@@ -110,7 +110,7 @@
   },
   "health": {
     "title": "Health",
-    "tabs": { "vaccinations": "Vaccinations", "deworming": "Deworming", "parasites": "Tick / Flea" },
+    "tabs": { "weight": "Weight", "vaccinations": "Vaccinations", "deworming": "Deworming", "parasites": "Tick / Flea" },
     "add": "Add",
     "save": "Save",
     "delete": "Delete",

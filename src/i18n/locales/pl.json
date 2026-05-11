@@ -110,7 +110,7 @@
   },
   "health": {
     "title": "Zdrowie",
-    "tabs": { "vaccinations": "Szczepienia", "deworming": "Odrobaczanie", "parasites": "Kleszcze/Pchły" },
+    "tabs": { "weight": "Waga", "vaccinations": "Szczepienia", "deworming": "Odrobaczanie", "parasites": "Kleszcze/Pchły" },
     "add": "Dodaj",
     "save": "Zapisz",
     "delete": "Usuń",
