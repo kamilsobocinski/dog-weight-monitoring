@@ -45,7 +45,8 @@ const DOCUMENT_GUIDE = [
         section: 'Sekcja IV',
         page: 'str. 8–9',
         sectionAlts: 'Section IV / Abschnitt IV / Sección IV',
-        tip: 'Rozkładówka z tabelą szczepień na wściekliznę. Nagłówek: "Rabies / Tollwut / Rabia". Zwykle 2–4 wiersze.',
+        tip: '📱 OBRÓĆ TELEFON POZIOMO przed zrobieniem zdjęcia! Ta strona jest drukowana w układzie poziomym. Nagłówek: "Rabies / Tollwut / Rabia". Zwykle 2–4 wiersze.',
+        landscape: true,
         fields: [
           { symbol: '📅', text: 'Data / Datum / Fecha' },
           { symbol: '💊', text: 'Nazwa preparatu / Impfstoff / Nombre vacuna' },
@@ -63,7 +64,8 @@ const DOCUMENT_GUIDE = [
         section: 'Sekcja V',
         page: 'str. 10–11',
         sectionAlts: 'Section V / Abschnitt V / Sección V',
-        tip: 'Nagłówek: "Other vaccinations / Sonstige Impfungen / Otras vacunaciones". DHPPI, leptospiroza, parvowirus itp.',
+        tip: '📱 OBRÓĆ TELEFON POZIOMO! Nagłówek: "Other vaccinations / Sonstige Impfungen / Otras vacunaciones". DHPPI, leptospiroza, parvowirus itp.',
+        landscape: true,
         fields: [
           { symbol: '📅', text: 'Data / Datum / Fecha' },
           { symbol: '💊', text: 'Nazwa preparatu / Impfstoff' },
@@ -673,6 +675,17 @@ export function ScanScreen({ dog, onClose, onSaved }) {
                 </div>
               </div>
             </div>
+
+            {/* Landscape warning */}
+            {selStep.landscape && (
+              <div style={{
+                background: '#fef3c7', borderRadius: 8, padding: '10px 12px',
+                fontSize: 14, color: '#92400e', lineHeight: 1.5, fontWeight: 700,
+                marginBottom: 8, textAlign: 'center',
+              }}>
+                📱↔️ Obróć telefon POZIOMO przed zdjęciem!
+              </div>
+            )}
 
             {/* Tip */}
             <div style={{
