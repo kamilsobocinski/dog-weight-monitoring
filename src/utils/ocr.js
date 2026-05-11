@@ -216,7 +216,9 @@ export function parseVaccinations(text) {
   const dates = findDates(text)
 
   // ── Vaccine name ──
-  // Known brand names across EU, DE, AT, ES passports
+  // Compare without spaces: catches "BiocanR" = "Biocan R", "NobivacRabies" etc.
+  const norm = s => s.toLowerCase().replace(/\s+/g, '')
+  const textNorm = norm(text)
   const KNOWN_VACCINES = [
     // Rabies
     'Rabisin', 'Nobivac Rabies', 'Nobivac', 'Defensor', 'Versiguard', 'Rabigen',
@@ -231,7 +233,7 @@ export function parseVaccinations(text) {
   ]
   let vaccineName = ''
   for (const n of KNOWN_VACCINES) {
-    if (text.toLowerCase().includes(n.toLowerCase())) { vaccineName = n; break }
+    if (textNorm.includes(norm(n))) { vaccineName = n; break }
   }
   if (!vaccineName) {
     vaccineName = valueFlexible(text, [
@@ -241,18 +243,33 @@ export function parseVaccinations(text) {
   }
 
   // ── Batch / lot number ──
-  const batchNumber = valueFlexible(text, [
+  let batchNumber = valueFlexible(text, [
     'Numer partii', 'Nr partii', 'Nr serii', 'Batch', 'Lot', 'Charge', 'Lote',
     'Chargennummer', 'Numéro de lot',
   ], 20)
+  if (!batchNumber) {
+    // Fallback: any standalone 5-8 digit number is likely a batch/series number
+    const bm = text.match(/\b(\d{5,8})\b/)
+    if (bm) batchNumber = bm[1]
+  }
 
   // ── Vet name ──
-  const vetName = nameAfterKeyword(text, [
+  let vetName = nameAfterKeyword(text, [
     'LEKARZ', 'Lekarz', 'Lekarz wet', 'Weterynarza', 'Weterynarz',
     'Tierarzt', 'TIERARZT', 'Praktischer Tierarzt',
-    'VETERINARIAN', 'Veterinarian', 'Authorised vet',
+    'VETERINARIAN', 'Veterinarian', 'Authorised vet', 'UPOWAŻNIONY',
     'Veterinario', 'Médico veterinario',
   ])
+  if (!vetName) {
+    // Fallback: find "Firstname Lastname" pattern after VALID UNTIL / WAŻNE DO section
+    const idx = Math.max(
+      text.indexOf('VALID UNTIL'), text.indexOf('WAŻNE DO'),
+      text.indexOf('gültig bis'), 0
+    )
+    const after = text.slice(idx, idx + 300)
+    const m = after.match(/\b([A-ZŻŹĆŃÓŁŚĄĘ][a-zżźćńółśąę]{2,})\s+([A-ZŻŹĆŃÓŁŚĄĘ][a-zżźćńółśąę]{2,})\b/)
+    if (m) vetName = `${m[1]} ${m[2]}`
+  }
 
   // ── Valid-until date ──
   // EU passport: "Ważne od" = valid FROM (= same as vaccination date)

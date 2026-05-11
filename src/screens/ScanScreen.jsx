@@ -764,11 +764,18 @@ export function ScanScreen({ dog, onClose, onSaved }) {
       {/* ── FAZA 5: Weryfikacja ── */}
       {phase === 'review' && selStep && (
         <div>
-          <div className="card" style={{ background: 'var(--blue-light)', border: '1px solid var(--blue)', marginBottom: 16 }}>
+          <div className="card" style={{ background: 'var(--blue-light)', border: '1px solid var(--blue)', marginBottom: 8 }}>
             <div style={{ fontSize: 13, color: 'var(--blue-dark)' }}>
               ✏️ {t('scan.reviewNote')}
             </div>
           </div>
+          {selStep?.scanType === 'vaccination' && (
+            <div className="card" style={{ background: '#fef3c7', border: '1px solid #f59e0b', marginBottom: 16 }}>
+              <div style={{ fontSize: 12, color: '#92400e' }}>
+                ✍️ <strong>Daty pisane ręcznie</strong> (jak w paszporcie EU) nie są wykrywane automatycznie — wpisz je ręcznie w pola DATA i WAŻNE DO.
+              </div>
+            </div>
+          )}
 
           {selStep.scanType === 'profile' && (
             <ProfileForm data={profileData}
