@@ -1,11 +1,51 @@
 import { createWorker } from 'tesseract.js'
 
-/**
- * Run OCR on an image file.
- * Languages: Polish + English + German (EU passport is multilingual).
- * onProgress(0–100) called during recognition.
- */
-export async function runOCR(imageFile, onProgress) {
+// ─── Google Cloud Vision API ──────────────────────────────────────────────────
+
+const VISION_KEY = import.meta.env.VITE_GOOGLE_VISION_API_KEY
+
+/** Convert a Blob to base64 string (without data: prefix) */
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload  = () => resolve(reader.result.split(',')[1])
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
+/** Run OCR via Google Cloud Vision API (DOCUMENT_TEXT_DETECTION) */
+async function runGoogleVisionOCR(imageBlob, onProgress) {
+  if (onProgress) onProgress(10)
+  const base64 = await blobToBase64(imageBlob)
+  if (onProgress) onProgress(30)
+
+  const res = await fetch(
+    `https://vision.googleapis.com/v1/images:annotate?key=${VISION_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          image: { content: base64 },
+          features: [{ type: 'DOCUMENT_TEXT_DETECTION' }],
+          imageContext: { languageHints: ['pl', 'en', 'de', 'es'] },
+        }],
+      }),
+    }
+  )
+  if (onProgress) onProgress(80)
+
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error?.message || 'Google Vision error')
+
+  const text = json.responses?.[0]?.fullTextAnnotation?.text || ''
+  if (onProgress) onProgress(100)
+  return text
+}
+
+/** Run OCR via Tesseract.js (local, free, slower, worse on handwriting) */
+async function runTesseractOCR(imageBlob, onProgress) {
   const worker = await createWorker(['pol', 'eng', 'deu'], 1, {
     logger: m => {
       if (m.status === 'recognizing text' && onProgress) {
@@ -14,11 +54,23 @@ export async function runOCR(imageFile, onProgress) {
     },
   })
   try {
-    const { data } = await worker.recognize(imageFile)
+    const { data } = await worker.recognize(imageBlob)
     return data.text
   } finally {
     await worker.terminate()
   }
+}
+
+/**
+ * Run OCR on an image blob.
+ * Uses Google Cloud Vision if VITE_GOOGLE_VISION_API_KEY is set,
+ * otherwise falls back to Tesseract.js.
+ */
+export async function runOCR(imageFile, onProgress) {
+  if (VISION_KEY) {
+    return runGoogleVisionOCR(imageFile, onProgress)
+  }
+  return runTesseractOCR(imageFile, onProgress)
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
