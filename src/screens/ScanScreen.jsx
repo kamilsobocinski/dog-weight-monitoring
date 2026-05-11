@@ -457,7 +457,15 @@ export function ScanScreen({ dog, onClose, onSaved }) {
   const [progress,    setProgress]    = useState(0)
   const [ocrText,     setOcrText]     = useState('')
 
-  const [profileData, setProfileData]     = useState({})
+  // Pre-fill profile with existing dog data — scan only ADDS missing fields
+  const [profileData, setProfileData]     = useState({
+    name:      dog?.name      || '',
+    breed:     dog?.breedName || '',
+    birthdate: dog?.birthdate || '',
+    sex:       dog?.sex       || '',
+    colour:    dog?.colour    || '',
+    chip:      dog?.chipNumber || '',
+  })
   const [vaccinEntries, setVaccinEntries] = useState([{}])
   const [antiEntries,   setAntiEntries]   = useState([{}])
   const [antiType,      setAntiType]      = useState('deworming')
@@ -477,7 +485,16 @@ export function ScanScreen({ dog, onClose, onSaved }) {
       setOcrText(text)
 
       if (selStep.scanType === 'profile') {
-        setProfileData(parseDogProfile(text))
+        const ocr = parseDogProfile(text)
+        // Merge: OCR result wins only if it found something; existing dog data fills the rest
+        setProfileData(prev => ({
+          name:      ocr.name      || prev.name      || '',
+          breed:     ocr.breed     || prev.breed     || '',
+          birthdate: ocr.birthdate || prev.birthdate || '',
+          sex:       ocr.sex       || prev.sex       || '',
+          colour:    ocr.colour    || prev.colour    || '',
+          chip:      ocr.chip      || prev.chip      || '',
+        }))
       } else if (selStep.scanType === 'vaccination') {
         const entries = parseVaccinations(text)
         setVaccinEntries(entries.length ? entries : [{
