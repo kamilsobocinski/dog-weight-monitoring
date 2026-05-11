@@ -199,6 +199,21 @@
     "saved": "Daten gespeichert!",
     "error": "Erkennungsfehler — bitte erneut versuchen"
   },
+  "auth": {
+    "title": "Konto & Backup",
+    "signInGoogle": "Mit Google anmelden",
+    "signOut": "Abmelden",
+    "lastBackup": "Letztes Backup",
+    "noBackup": "Noch kein Cloud-Backup",
+    "backupNow": "Jetzt sichern",
+    "backupDone": "Backup abgeschlossen!",
+    "backupError": "Backup fehlgeschlagen — bitte erneut versuchen",
+    "syncing": "Synchronisierung...",
+    "restoreTitle": "Cloud-Daten gefunden",
+    "restoreMsg": "Es wurden gespeicherte Daten in der Cloud gefunden. Moechten Sie diese auf dieses Geraet wiederherstellen?",
+    "restoreYes": "Ja, Daten wiederherstellen",
+    "restoreNo": "Nein, neu beginnen"
+  },
   "errors": {
     "weightInvalid": "Bitte ein gueltiges Gewicht eingeben",
     "weightTooLow": "Gewicht erscheint zu niedrig",

@@ -149,6 +149,42 @@ export async function deleteParasitePrevention(id) {
   return db.parasitePrevention.delete(id)
 }
 
+// ─── Raw insert helpers (for restore from cloud backup) ──────────────────────
+// These bypass auto-increment and preserve original IDs.
+
+export async function addDogRaw(dog) {
+  return db.dogs.put(dog)
+}
+
+export async function addWeightRaw(w) {
+  return db.weights.put(w)
+}
+
+export async function addVaccinationRaw(v) {
+  return db.vaccinations.put(v)
+}
+
+export async function addDewormingRaw(d) {
+  return db.dewormings.put(d)
+}
+
+export async function addParasitePreventionRaw(p) {
+  return db.parasitePrevention.put(p)
+}
+
+export async function getAllWeights(dogId) {
+  return db.weights.where('dogId').equals(dogId).sortBy('date')
+}
+
+/** Wipe all local data (used before restoring from cloud) */
+export async function clearAllData() {
+  await db.dogs.clear()
+  await db.weights.clear()
+  await db.vaccinations.clear()
+  await db.dewormings.clear()
+  await db.parasitePrevention.clear()
+}
+
 // ─── Settings ────────────────────────────────────────────────────────────────
 
 export async function getSetting(key) {

@@ -3,6 +3,11 @@ import { useDog } from './hooks/useDog'
 import { checkAndShowNotification, calcNextNotif } from './utils/notifications'
 import { initOneSignal, isPushSubscribed, scheduleNextNotification } from './utils/onesignal'
 import { getSetting, setSetting } from './utils/db'
+import { onAuth } from './utils/firebase'
+import {
+  isSyncDue, markSyncDone, getLastSyncDate,
+  uploadBackup, downloadBackup, hasCloudBackup,
+} from './utils/cloudSync'
 import { DashboardScreen } from './screens/DashboardScreen'
 import { AddWeightScreen } from './screens/AddWeightScreen'
 import { HistoryScreen } from './screens/HistoryScreen'
@@ -60,12 +65,81 @@ export default function App() {
   const [scanOpen,        setScanOpen]        = useState(false)
   const [medicalCardOpen, setMedicalCardOpen] = useState(false)
 
+  // ── Firebase auth + sync state ────────────────────────────────────────────
+  const [user,          setUser]          = useState(null)
+  const [syncing,       setSyncing]       = useState(false)
+  const [lastSync,      setLastSync]      = useState(() => getLastSyncDate())
+  // restorePrompt: null | { uid: string }
+  const [restorePrompt, setRestorePrompt] = useState(null)
+
   // Add body class so print CSS can hide the app content
   useEffect(() => {
     if (medicalCardOpen) document.body.classList.add('medical-card-open')
     else document.body.classList.remove('medical-card-open')
     return () => document.body.classList.remove('medical-card-open')
   }, [medicalCardOpen])
+
+  // ── Auth listener — runs once on mount ───────────────────────────────────
+  useEffect(() => {
+    return onAuth(async (fbUser) => {
+      setUser(fbUser)
+      if (!fbUser) return
+
+      // Check if this device has ever synced with this account
+      const lastSyncDate = getLastSyncDate()
+      if (!lastSyncDate) {
+        // First time on this device — check if cloud backup exists
+        const backupExists = await hasCloudBackup(fbUser.uid)
+        if (backupExists) {
+          setRestorePrompt({ uid: fbUser.uid })
+          return
+        }
+        // No backup yet — do the first upload
+        setSyncing(true)
+        try { await uploadBackup(fbUser.uid) } catch (_) {}
+        setSyncing(false)
+        setLastSync(getLastSyncDate())
+        return
+      }
+
+      // Returning user — auto-sync weekly
+      if (isSyncDue()) {
+        setSyncing(true)
+        try { await uploadBackup(fbUser.uid) } catch (_) {}
+        setSyncing(false)
+        setLastSync(getLastSyncDate())
+      }
+    })
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Manual backup ────────────────────────────────────────────────────────
+  const handleManualBackup = async () => {
+    if (!user || syncing) return
+    setSyncing(true)
+    try { await uploadBackup(user.uid) } catch (_) {}
+    setSyncing(false)
+    setLastSync(getLastSyncDate())
+  }
+
+  // ── Restore handlers ─────────────────────────────────────────────────────
+  const handleRestoreYes = async () => {
+    if (!restorePrompt) return
+    setSyncing(true)
+    try {
+      await downloadBackup(restorePrompt.uid)
+      setLastSync(getLastSyncDate())
+      window.location.reload()
+    } catch (_) {
+      setSyncing(false)
+    }
+    setRestorePrompt(null)
+  }
+
+  const handleRestoreNo = () => {
+    markSyncDone() // mark so we don't prompt again on next login
+    setLastSync(getLastSyncDate())
+    setRestorePrompt(null)
+  }
 
   const { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight } = useDog()
 
@@ -152,6 +226,41 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* ── Restore-from-cloud modal ── */}
+      {restorePrompt && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(0,0,0,0.55)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          padding: 24,
+        }}>
+          <div style={{
+            background: 'var(--surface)', borderRadius: 'var(--radius)',
+            padding: 24, maxWidth: 340, width: '100%',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+          }}>
+            <div style={{ fontSize: 32, textAlign: 'center', marginBottom: 10 }}>☁️</div>
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8, textAlign: 'center' }}>
+              {t('auth.restoreTitle')}
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--gray-500)', marginBottom: 20, textAlign: 'center', lineHeight: 1.5 }}>
+              {t('auth.restoreMsg')}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button className="btn btn-primary" onClick={handleRestoreYes} disabled={syncing}>
+                {syncing
+                  ? <><span className="spinner" style={{ width: 14, height: 14 }} /> {t('auth.syncing')}</>
+                  : t('auth.restoreYes')
+                }
+              </button>
+              <button className="btn btn-secondary" onClick={handleRestoreNo} disabled={syncing}>
+                {t('auth.restoreNo')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Overlays (scan + medical card) ── */}
       {scanOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--surface)', overflowY: 'auto' }}>
@@ -198,6 +307,10 @@ export default function App() {
           onAddDog={() => setSetupMode('add')}
           onEditDog={() => setSetupMode(dog)}
           onDeleteDog={removeDog}
+          user={user}
+          syncing={syncing}
+          lastSync={lastSync}
+          onBackup={handleManualBackup}
         />
       )}
 

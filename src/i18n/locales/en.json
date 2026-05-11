@@ -199,6 +199,21 @@
     "saved": "Data saved!",
     "error": "Recognition error — please try again"
   },
+  "auth": {
+    "title": "Account & Backup",
+    "signInGoogle": "Sign in with Google",
+    "signOut": "Sign out",
+    "lastBackup": "Last backup",
+    "noBackup": "No cloud backup yet",
+    "backupNow": "Back up now",
+    "backupDone": "Backup complete!",
+    "backupError": "Backup failed — please try again",
+    "syncing": "Syncing...",
+    "restoreTitle": "Cloud data found",
+    "restoreMsg": "We found saved data in the cloud. Would you like to restore it on this device?",
+    "restoreYes": "Yes, restore my data",
+    "restoreNo": "No, start fresh"
+  },
   "errors": {
     "weightInvalid": "Please enter a valid weight",
     "weightTooLow": "Weight seems too low",

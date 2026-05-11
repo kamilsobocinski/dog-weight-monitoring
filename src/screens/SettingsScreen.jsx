@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { LanguageSwitcher } from '../components/LanguageSwitcher'
+import { AuthButton } from '../components/AuthButton'
 import { getSetting, setSetting } from '../utils/db'
 import { calcNextNotif } from '../utils/notifications'
 import { requestPushPermission, isPushSubscribed, scheduleNextNotification } from '../utils/onesignal'
@@ -21,7 +22,7 @@ function daysToValue(days) {
   return INTERVALS.find(i => i.days === days)?.value ?? 'every2days'
 }
 
-export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) {
+export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog, user, syncing, lastSync, onBackup }) {
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
 
@@ -120,6 +121,12 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
     <div className="screen">
       <div className="page-header">
         <h1 className="page-title">⚙️ {t('settings.title')}</h1>
+      </div>
+
+      {/* Cloud backup / Account */}
+      <div className="card">
+        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>☁️ {t('auth.title')}</div>
+        <AuthButton user={user} syncing={syncing} lastSync={lastSync} onBackup={onBackup} />
       </div>
 
       {/* Language */}
@@ -240,7 +247,7 @@ export function SettingsScreen({ dog, dogs, onAddDog, onEditDog, onDeleteDog }) 
         <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--gray-600)', marginBottom: 6 }}>
           🐾 DogPass
         </div>
-        <div>v1.7.0 · PWA · 100 breeds · PL / EN / DE / ES</div>
+        <div>v1.8.0 · PWA · 100 breeds · PL / EN / DE / ES</div>
         <div style={{ marginTop: 8, fontSize: 12 }}>
           © {new Date().getFullYear()} Kamil Sobociński · All rights reserved
         </div>

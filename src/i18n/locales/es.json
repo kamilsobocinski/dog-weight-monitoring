@@ -199,6 +199,21 @@
     "saved": "¡Datos guardados!",
     "error": "Error de reconocimiento — inténtalo de nuevo"
   },
+  "auth": {
+    "title": "Cuenta y copia de seguridad",
+    "signInGoogle": "Iniciar sesión con Google",
+    "signOut": "Cerrar sesión",
+    "lastBackup": "Última copia de seguridad",
+    "noBackup": "Sin copia de seguridad en la nube",
+    "backupNow": "Hacer copia ahora",
+    "backupDone": "¡Copia completada!",
+    "backupError": "Error en la copia — inténtalo de nuevo",
+    "syncing": "Sincronizando...",
+    "restoreTitle": "Datos en la nube encontrados",
+    "restoreMsg": "Hemos encontrado datos guardados en la nube. ¿Deseas restaurarlos en este dispositivo?",
+    "restoreYes": "Sí, restaurar mis datos",
+    "restoreNo": "No, empezar de cero"
+  },
   "errors": {
     "weightInvalid": "Por favor introduce un peso válido",
     "weightTooLow": "El peso parece demasiado bajo",

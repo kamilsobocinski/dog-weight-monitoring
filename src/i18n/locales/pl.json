@@ -199,6 +199,21 @@
     "saved": "Dane zapisane!",
     "error": "Blad rozpoznawania — sprobuj ponownie"
   },
+  "auth": {
+    "title": "Konto i backup",
+    "signInGoogle": "Zaloguj się przez Google",
+    "signOut": "Wyloguj",
+    "lastBackup": "Ostatni backup",
+    "noBackup": "Brak backupu w chmurze",
+    "backupNow": "Wykonaj backup teraz",
+    "backupDone": "Backup wykonany!",
+    "backupError": "Błąd backupu — spróbuj ponownie",
+    "syncing": "Synchronizacja...",
+    "restoreTitle": "Znaleziono dane w chmurze",
+    "restoreMsg": "Znaleziono zapisane dane w chmurze. Czy chcesz wczytać je na to urządzenie?",
+    "restoreYes": "Tak, wczytaj dane",
+    "restoreNo": "Nie, zacznij od nowa"
+  },
   "errors": {
     "weightInvalid": "Podaj prawidlowa wage",
     "weightTooLow": "Waga wydaje sie zbyt mala",
