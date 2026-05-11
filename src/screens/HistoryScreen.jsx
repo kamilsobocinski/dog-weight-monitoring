@@ -71,7 +71,7 @@ export function HistoryScreen({ dog, weights, onDelete }) {
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(18)
       doc.setFont('helvetica', 'bold')
-      doc.text('🐾 Dog Weight Monitoring', margin, 12)
+      doc.text('🐾 DogPass', margin, 12)
       doc.setFontSize(10)
       doc.setFont('helvetica', 'normal')
       doc.text(`Generated: ${format(new Date(), 'dd.MM.yyyy HH:mm')}`, margin, 20)
@@ -206,7 +206,7 @@ export function HistoryScreen({ dog, weights, onDelete }) {
         doc.setFontSize(8)
         doc.setTextColor(148, 163, 184)
         doc.text(
-          `Dog Weight Monitoring · Page ${p}/${pages}`,
+          `DogPass · Page ${p}/${pages}`,
           pageW / 2,
           doc.internal.pageSize.getHeight() - 8,
           { align: 'center' },

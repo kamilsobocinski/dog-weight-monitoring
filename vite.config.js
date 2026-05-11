@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Dog Weight Monitoring',
-        short_name: 'DogWeight',
-        description: "Track your dog's weight and compare with breed standards",
+        name: 'DogPass',
+        short_name: 'DogPass',
+        description: "Track your dog's health, weight and medical records",
         theme_color: '#2563eb',
         background_color: '#f8fafc',
         display: 'standalone',

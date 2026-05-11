@@ -31,7 +31,7 @@ export async function checkAndShowNotification(dog) {
   if (nextStr && Date.now() >= new Date(nextStr).getTime()) {
     // Due — show it
     try {
-      new Notification('🐾 Dog Weight Monitoring', {
+      new Notification('🐾 DogPass', {
         body: dog ? `Time to weigh ${dog.name}! 🐾` : 'Time to weigh your dog! 🐾',
         icon: '/icons/icon-192.png',
       })

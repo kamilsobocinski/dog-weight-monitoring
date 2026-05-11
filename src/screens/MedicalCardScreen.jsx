@@ -138,7 +138,7 @@ export function MedicalCardScreen({ dog, weights, onClose }) {
 
         {/* App header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-          <div style={{ fontSize: 11, color: '#94a3b8' }}>🐾 Dog Weight Monitoring</div>
+          <div style={{ fontSize: 11, color: '#94a3b8' }}>🐾 DogPass</div>
           <div style={{ fontSize: 11, color: '#94a3b8' }}>
             {t('medCard.generatedOn')}: {format(new Date(), 'dd.MM.yyyy HH:mm')}
           </div>
@@ -253,7 +253,7 @@ export function MedicalCardScreen({ dog, weights, onClose }) {
 
         {/* Footer */}
         <div style={{ marginTop: 32, paddingTop: 12, borderTop: '1px solid #e2e8f0', fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
-          Dog Weight Monitoring · {format(new Date(), 'dd.MM.yyyy')} · dogweightmonitoring.vercel.app
+          DogPass · {format(new Date(), 'dd.MM.yyyy')} · dogweightmonitoring.vercel.app
         </div>
       </div>
     </div>
