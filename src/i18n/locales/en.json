@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "add": "Add Weight",
     "history": "History",
+    "health": "Health",
     "settings": "Settings"
   },
   "setup": {
@@ -104,6 +105,51 @@
     "confirmNo": "Cancel",
     "notifTime": "Reminder time",
     "notifNext": "Next reminder"
+  },
+  "health": {
+    "title": "Health",
+    "tabs": { "vaccinations": "Vaccinations", "deworming": "Deworming", "parasites": "Tick / Flea" },
+    "add": "Add",
+    "save": "Save",
+    "delete": "Delete",
+    "confirmDelete": "Delete this entry?",
+    "date": "Date",
+    "product": "Product",
+    "dose": "Dose (optional)",
+    "weightAtDose": "Weight at dose (kg)",
+    "vetName": "Vet name (optional)",
+    "note": "Note (optional)",
+    "reaction": "Reaction after dose",
+    "reactionNote": "Reaction details (optional)",
+    "nextDue": "Next dose",
+    "saved": "Saved!",
+    "noData": "No entries yet",
+    "vaccinations": {
+      "title": "Vaccinations",
+      "add": "Add vaccination",
+      "vaccineType": "Type",
+      "vaccineName": "Vaccine name",
+      "batchNumber": "Batch number (optional)",
+      "validUntil": "Valid until",
+      "valid": "Valid",
+      "expiresSoon": "Expires in {{days}} days",
+      "expired": "Expired!"
+    },
+    "vaccineTypes": {
+      "rabies": "Rabies",
+      "combined": "Combined",
+      "other": "Other"
+    },
+    "reactions": {
+      "none": "No reaction",
+      "diarrhea": "Diarrhea",
+      "vomiting": "Vomiting",
+      "lethargy": "Lethargy",
+      "other": "Other"
+    },
+    "crossReactionHigh": "⚠️ This same product caused a reaction in {{name}}! Consult your vet.",
+    "crossReactionMedium": "⚠️ {{name}} had a reaction to {{prior}} ({{ingredient}}). This product contains a similar substance ({{class}}). Consult your vet.",
+    "consultVet": "Consult your vet"
   },
   "install": {
     "title": "Install the app",

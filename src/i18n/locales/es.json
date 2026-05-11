@@ -7,6 +7,7 @@
     "dashboard": "Panel",
     "add": "Añadir peso",
     "history": "Historial",
+    "health": "Salud",
     "settings": "Ajustes"
   },
   "setup": {
@@ -104,6 +105,51 @@
     "confirmNo": "Cancelar",
     "notifTime": "Hora del recordatorio",
     "notifNext": "Proximo recordatorio"
+  },
+  "health": {
+    "title": "Salud",
+    "tabs": { "vaccinations": "Vacunas", "deworming": "Desparasitación", "parasites": "Garrapatas/Pulgas" },
+    "add": "Añadir",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Eliminar este registro?",
+    "date": "Fecha",
+    "product": "Producto",
+    "dose": "Dosis (opcional)",
+    "weightAtDose": "Peso al administrar (kg)",
+    "vetName": "Veterinario (opcional)",
+    "note": "Nota (opcional)",
+    "reaction": "Reacción tras la dosis",
+    "reactionNote": "Descripción de la reacción (opcional)",
+    "nextDue": "Próxima dosis",
+    "saved": "¡Guardado!",
+    "noData": "Sin registros",
+    "vaccinations": {
+      "title": "Vacunas",
+      "add": "Añadir vacuna",
+      "vaccineType": "Tipo",
+      "vaccineName": "Nombre de la vacuna",
+      "batchNumber": "Número de lote (opcional)",
+      "validUntil": "Válida hasta",
+      "valid": "Válida",
+      "expiresSoon": "Caduca en {{days}} días",
+      "expired": "¡Caducada!"
+    },
+    "vaccineTypes": {
+      "rabies": "Rabia",
+      "combined": "Combinada",
+      "other": "Otra"
+    },
+    "reactions": {
+      "none": "Sin reacción",
+      "diarrhea": "Diarrea",
+      "vomiting": "Vómitos",
+      "lethargy": "Letargo",
+      "other": "Otra"
+    },
+    "crossReactionHigh": "⚠️ Este mismo producto causó una reacción en {{name}}. Consulta a tu veterinario.",
+    "crossReactionMedium": "⚠️ {{name}} tuvo reacción a {{prior}} ({{ingredient}}). Este producto contiene una sustancia similar ({{class}}). Consulta a tu veterinario.",
+    "consultVet": "Consulta a tu veterinario"
   },
   "install": {
     "title": "Instalar la app",

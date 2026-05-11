@@ -7,6 +7,7 @@
     "dashboard": "Pulpit",
     "add": "Dodaj pomiar",
     "history": "Historia",
+    "health": "Zdrowie",
     "settings": "Ustawienia"
   },
   "setup": {
@@ -104,6 +105,51 @@
     "confirmNo": "Anuluj",
     "notifTime": "Godzina przypomnienia",
     "notifNext": "Nastepne przypomnienie"
+  },
+  "health": {
+    "title": "Zdrowie",
+    "tabs": { "vaccinations": "Szczepienia", "deworming": "Odrobaczanie", "parasites": "Kleszcze/Pchły" },
+    "add": "Dodaj",
+    "save": "Zapisz",
+    "delete": "Usuń",
+    "confirmDelete": "Usunąć ten wpis?",
+    "date": "Data",
+    "product": "Preparat",
+    "dose": "Dawka (opcjonalnie)",
+    "weightAtDose": "Waga przy podaniu (kg)",
+    "vetName": "Lekarz wet. (opcjonalnie)",
+    "note": "Notatka (opcjonalnie)",
+    "reaction": "Reakcja po podaniu",
+    "reactionNote": "Opis reakcji (opcjonalnie)",
+    "nextDue": "Następna dawka",
+    "saved": "Zapisano!",
+    "noData": "Brak wpisów",
+    "vaccinations": {
+      "title": "Szczepienia",
+      "add": "Dodaj szczepienie",
+      "vaccineType": "Rodzaj",
+      "vaccineName": "Nazwa szczepionki",
+      "batchNumber": "Nr serii (opcjonalnie)",
+      "validUntil": "Ważne do",
+      "valid": "Ważne",
+      "expiresSoon": "Wygasa za {{days}} dni",
+      "expired": "Przeterminowane!"
+    },
+    "vaccineTypes": {
+      "rabies": "Wścieklizna",
+      "combined": "Skojarzona",
+      "other": "Inna"
+    },
+    "reactions": {
+      "none": "Brak reakcji",
+      "diarrhea": "Biegunka",
+      "vomiting": "Wymioty",
+      "lethargy": "Apatia / senność",
+      "other": "Inna"
+    },
+    "crossReactionHigh": "⚠️ Ten sam preparat wywołał reakcję u {{name}}! Skonsultuj z weterynarzem.",
+    "crossReactionMedium": "⚠️ {{name}} miał/a reakcję na {{prior}} ({{ingredient}}). Ten preparat zawiera podobną substancję ({{class}}). Skonsultuj z weterynarzem.",
+    "consultVet": "Skonsultuj z weterynarzem"
   },
   "install": {
     "title": "Zainstaluj aplikacje",

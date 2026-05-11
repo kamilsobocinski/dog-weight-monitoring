@@ -7,6 +7,7 @@
     "dashboard": "Dashboard",
     "add": "Gewicht eintragen",
     "history": "Verlauf",
+    "health": "Gesundheit",
     "settings": "Einstellungen"
   },
   "setup": {
@@ -104,6 +105,51 @@
     "confirmNo": "Abbrechen",
     "notifTime": "Erinnerungszeit",
     "notifNext": "Naechste Erinnerung"
+  },
+  "health": {
+    "title": "Gesundheit",
+    "tabs": { "vaccinations": "Impfungen", "deworming": "Entwurmung", "parasites": "Zecken/Flöhe" },
+    "add": "Hinzufuegen",
+    "save": "Speichern",
+    "delete": "Loeschen",
+    "confirmDelete": "Diesen Eintrag loeschen?",
+    "date": "Datum",
+    "product": "Praeparat",
+    "dose": "Dosis (optional)",
+    "weightAtDose": "Gewicht bei Gabe (kg)",
+    "vetName": "Tierarzt (optional)",
+    "note": "Notiz (optional)",
+    "reaction": "Reaktion nach Gabe",
+    "reactionNote": "Reaktionsbeschreibung (optional)",
+    "nextDue": "Naechste Dosis",
+    "saved": "Gespeichert!",
+    "noData": "Keine Eintraege",
+    "vaccinations": {
+      "title": "Impfungen",
+      "add": "Impfung hinzufuegen",
+      "vaccineType": "Art",
+      "vaccineName": "Impfstoffname",
+      "batchNumber": "Chargennummer (optional)",
+      "validUntil": "Gueltig bis",
+      "valid": "Gueltig",
+      "expiresSoon": "Laeuft in {{days}} Tagen ab",
+      "expired": "Abgelaufen!"
+    },
+    "vaccineTypes": {
+      "rabies": "Tollwut",
+      "combined": "Kombination",
+      "other": "Sonstige"
+    },
+    "reactions": {
+      "none": "Keine Reaktion",
+      "diarrhea": "Durchfall",
+      "vomiting": "Erbrechen",
+      "lethargy": "Lethargie",
+      "other": "Sonstige"
+    },
+    "crossReactionHigh": "⚠️ Dasselbe Praeparat hat bei {{name}} eine Reaktion ausgeloest! Tierarzt konsultieren.",
+    "crossReactionMedium": "⚠️ {{name}} hatte eine Reaktion auf {{prior}} ({{ingredient}}). Dieses Praeparat enthaelt einen aehnlichen Wirkstoff ({{class}}). Tierarzt konsultieren.",
+    "consultVet": "Tierarzt konsultieren"
   },
   "install": {
     "title": "App installieren",

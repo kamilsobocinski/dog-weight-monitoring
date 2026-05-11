@@ -6,6 +6,7 @@ import { getSetting, setSetting } from './utils/db'
 import { DashboardScreen } from './screens/DashboardScreen'
 import { AddWeightScreen } from './screens/AddWeightScreen'
 import { HistoryScreen } from './screens/HistoryScreen'
+import { HealthScreen } from './screens/HealthScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { SetupScreen } from './screens/SetupScreen'
 import { InstallPrompt } from './components/InstallPrompt'
@@ -30,6 +31,13 @@ function IconHistory() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+    </svg>
+  )
+}
+function IconHealth() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
     </svg>
   )
 }
@@ -128,6 +136,7 @@ export default function App() {
     { id: 'dashboard', icon: <IconDashboard />, label: t('nav.dashboard') },
     { id: 'add',       icon: <IconAdd />,       label: t('nav.add') },
     { id: 'history',   icon: <IconHistory />,   label: t('nav.history') },
+    { id: 'health',    icon: <IconHealth />,    label: t('nav.health') },
     { id: 'settings',  icon: <IconSettings />,  label: t('nav.settings') },
   ]
 
@@ -148,6 +157,9 @@ export default function App() {
         <HistoryScreen
           dog={dog} weights={weights} onDelete={removeWeight}
         />
+      )}
+      {tab === 'health' && (
+        <HealthScreen dog={dog} />
       )}
       {tab === 'settings' && (
         <SettingsScreen
