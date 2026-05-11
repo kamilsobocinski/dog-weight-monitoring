@@ -27,13 +27,24 @@ export async function runOCR(imageFile, onProgress) {
  * Find all dates in DD.MM.YYYY / DD/MM/YYYY with OCR-noise tolerance.
  * Allows ) ( as separators, 2-digit years, fixes digit-bloat (20725 → 2025).
  */
+function fixYear(raw) {
+  if (raw.length === 2) return '20' + raw
+  if (raw.length === 4) return raw
+  // OCR digit-insertion: "20725" → try "20" + last 2 digits = "2025"
+  if (raw.length === 5 && raw.startsWith('20')) {
+    const candidate = '20' + raw[3] + raw[4]
+    const yr = parseInt(candidate)
+    if (yr >= 2020 && yr <= 2040) return candidate
+  }
+  // Last-resort: take first 4 chars
+  return raw.slice(0, 4)
+}
+
 function findDates(text) {
-  const matches = [...text.matchAll(/\b(\d{2})[.\/)(](\d{2})[.\/)(](\d{2,4})\b/g)]
+  const matches = [...text.matchAll(/\b(\d{2})[.\/)(](\d{2})[.\/)(](\d{2,5})\b/g)]
   const results = []
   for (const m of matches) {
-    let y = m[3]
-    if (y.length === 2) y = '20' + y
-    if (y.length > 4)   y = y.slice(0, 4)   // "20725" → "2025"
+    const y = fixYear(m[3])
     const d = parseInt(m[1]), mo = parseInt(m[2]), yr = parseInt(y)
     if (d < 1 || d > 31 || mo < 1 || mo > 12 || yr < 2000 || yr > 2040) continue
     results.push(`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`)
@@ -47,9 +58,9 @@ function dateAfterKeyword(text, keywords) {
     const idx = text.toLowerCase().indexOf(kw.toLowerCase())
     if (idx === -1) continue
     const after = text.slice(idx, idx + 120)
-    const m = after.match(/(\d{2})[.\/)(](\d{2})[.\/)(](\d{2,4})/)
+    const m = after.match(/(\d{2})[.\/)(](\d{2})[.\/)(](\d{2,5})/)
     if (m) {
-      let y = m[3]; if (y.length === 2) y = '20' + y; if (y.length > 4) y = y.slice(0, 4)
+      const y = fixYear(m[3])
       const d = parseInt(m[1]), mo = parseInt(m[2]), yr = parseInt(y)
       if (d < 1 || d > 31 || mo < 1 || mo > 12 || yr < 2000 || yr > 2040) continue
       return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
