@@ -23,20 +23,36 @@ export async function runOCR(imageFile, onProgress) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Find all dates in DD.MM.YYYY or DD/MM/YYYY format */
+/** Normalize OCR date noise then parse all DD.MM.YYYY / DD/MM/YYYY */
 function findDates(text) {
-  const matches = [...text.matchAll(/\b(\d{2})[./](\d{2})[./](\d{4})\b/g)]
-  return matches.map(m => `${m[3]}-${m[2]}-${m[1]}`) // → ISO YYYY-MM-DD
+  // Allow ) ( as separators (common OCR errors), allow 2-digit years
+  const matches = [...text.matchAll(/\b(\d{2})[.\/)(](\d{2})[.\/)(](\d{2,4})\b/g)]
+  const results = []
+  for (const m of matches) {
+    let y = m[3]
+    if (y.length === 2) y = '20' + y
+    // Fix OCR digit-bloat e.g. "20725" → "2025"
+    if (y.length > 4) y = y.slice(0, 4)
+    const d = parseInt(m[1]), mo = parseInt(m[2]), yr = parseInt(y)
+    if (d < 1 || d > 31 || mo < 1 || mo > 12 || yr < 2000 || yr > 2040) continue
+    results.push(`${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`)
+  }
+  // Also try to catch standalone years near "/" that OCR garbled
+  // e.g.  "tp: /2026"  →  try to find a full date nearby
+  return results
 }
 
-/** First date found after a keyword (case-insensitive) */
+/** First date found after a keyword (case-insensitive), tolerant regex */
 function dateAfterKeyword(text, keywords) {
   for (const kw of keywords) {
     const idx = text.toLowerCase().indexOf(kw.toLowerCase())
     if (idx === -1) continue
-    const after = text.slice(idx, idx + 80)
-    const m = after.match(/(\d{2})[./](\d{2})[./](\d{4})/)
-    if (m) return `${m[3]}-${m[2]}-${m[1]}`
+    const after = text.slice(idx, idx + 100)
+    const m = after.match(/(\d{2})[.\/)(](\d{2})[.\/)(](\d{2,4})/)
+    if (m) {
+      let y = m[3]; if (y.length === 2) y = '20' + y; if (y.length > 4) y = y.slice(0,4)
+      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
+    }
   }
   return ''
 }
@@ -47,6 +63,22 @@ function valueAfterKeyword(text, keywords, maxLen = 40) {
     const re = new RegExp(kw + '[^\\n]{0,10}?[:\\s]+([A-Za-z0-9żźćńółśąęŻŹĆŃÓŁŚĄĘ ().-]{2,' + maxLen + '})', 'i')
     const m = text.match(re)
     if (m) return m[1].trim()
+  }
+  return ''
+}
+
+/**
+ * Try to extract a person name from text near given keywords.
+ * Looks for "Firstname Lastname" pattern (two capitalized words).
+ */
+function nameAfterKeyword(text, keywords) {
+  for (const kw of keywords) {
+    const idx = text.toLowerCase().indexOf(kw.toLowerCase())
+    if (idx === -1) continue
+    const after = text.slice(idx, idx + 120)
+    // Two capitalized words = likely a name
+    const m = after.match(/\b([A-ZŻŹĆŃÓŁŚĄĘ][a-zżźćńółśąę]{2,})\s+([A-ZŻŹĆŃÓŁŚĄĘ][a-zżźćńółśąę]{2,})\b/)
+    if (m) return `${m[1]} ${m[2]}`
   }
   return ''
 }
@@ -101,38 +133,53 @@ export function parseVaccinations(text) {
   const results = []
   const dates = findDates(text)
 
-  // Try to find vaccine name (common names)
-  const vaccineNames = ['Biocan', 'Nobivac', 'Eurican', 'Rabisin', 'Defensor',
-    'Versiguard', 'Rabigen', 'Purevax', 'Vanguard']
+  // Try to find vaccine name (common names across EU/DE/AT/ES passports)
+  const vaccineNames = [
+    'Biocan', 'Nobivac', 'Eurican', 'Rabisin', 'Defensor',
+    'Versiguard', 'Rabigen', 'Purevax', 'Vanguard',
+    'Primodog', 'Canigen', 'Duramune', 'Recombitek',
+    'Dohyvac', 'Hexadog', 'Kavak', 'Rabdomun',
+    'Quantum', 'Rottacell', 'Enduracell',
+  ]
   let vaccineName = ''
   for (const n of vaccineNames) {
     if (text.toLowerCase().includes(n.toLowerCase())) { vaccineName = n; break }
   }
-  // Fallback: line after "Producent i nazwa" label
+  // Fallback: line after label
   if (!vaccineName) {
-    vaccineName = valueAfterKeyword(text, ['Producent i nazwa', 'Manufacturer', 'Vaccine'])
+    vaccineName = valueAfterKeyword(text,
+      ['Producent i nazwa', 'Manufacturer and name', 'Hersteller', 'Nombre vacuna', 'Vaccine name'])
   }
 
-  // Batch number: often near "Numer partii" / "Batch"
-  const batchNumber = valueAfterKeyword(text, ['Numer partii', 'Batch', 'Lot'], 20)
+  // Batch number: often near "Numer partii" / "Batch" / "Charge" / "Lote"
+  const batchNumber = valueAfterKeyword(text,
+    ['Numer partii', 'Batch', 'Lot', 'Charge', 'Lote', 'Nr partii'], 20)
 
-  // Dates: first = vaccination date, second = valid until
+  // Vet name: look near LEKARZ / Tierarzt / Veterinarian keywords
+  const vetName = nameAfterKeyword(text,
+    ['LEKARZ', 'Lekarz', 'Tierarzt', 'VETERINARIAN', 'Veterinarian', 'Veterinario', 'Vet'])
+
+  // valid-until: look for second date, or near "Ważne od" / "gültig" / "válida"
+  const validUntilFromKw = dateAfterKeyword(text,
+    ['Ważne od', 'ważne od', 'gültig bis', 'Valid until', 'Válida hasta', 'Caducidad'])
+
+  // Dates: first = vaccination date, second = valid until (or from keyword)
   if (dates.length >= 1) {
     results.push({
       vaccineType:  'rabies',
       vaccineName:  vaccineName || '',
       batchNumber:  batchNumber || '',
       date:         dates[0] || '',
-      validUntil:   dates[1] || '',
-      vetName:      '',
+      validUntil:   validUntilFromKw || dates[1] || '',
+      vetName:      vetName || '',
     })
   }
-  // If more date pairs found, add additional entries
-  if (dates.length >= 3) {
-    results.push({ vaccineType: 'rabies', vaccineName, batchNumber, date: dates[2], validUntil: dates[3] || '', vetName: '' })
-  }
-  if (dates.length >= 5) {
-    results.push({ vaccineType: 'rabies', vaccineName, batchNumber, date: dates[4], validUntil: dates[5] || '', vetName: '' })
+  // Additional rows if multiple date pairs found
+  for (let i = 2; i + 1 < dates.length; i += 2) {
+    results.push({
+      vaccineType: 'rabies', vaccineName, batchNumber,
+      date: dates[i], validUntil: dates[i + 1] || '', vetName,
+    })
   }
 
   return results
