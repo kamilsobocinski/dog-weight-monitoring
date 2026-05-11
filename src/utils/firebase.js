@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -19,8 +19,18 @@ export const db   = getFirestore(app)
 
 export async function signInWithGoogle() {
   const provider = new GoogleAuthProvider()
-  const result   = await signInWithPopup(auth, provider)
-  return result.user
+  // signInWithRedirect works reliably on iOS Safari / PWA (popup is blocked)
+  await signInWithRedirect(auth, provider)
+}
+
+/** Call once on app mount — resolves user if returning from Google redirect */
+export async function handleRedirectResult() {
+  try {
+    const result = await getRedirectResult(auth)
+    return result?.user ?? null
+  } catch {
+    return null
+  }
 }
 
 export function signOutUser() {

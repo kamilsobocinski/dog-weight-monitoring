@@ -3,11 +3,12 @@ import { useDog } from './hooks/useDog'
 import { checkAndShowNotification, calcNextNotif } from './utils/notifications'
 import { initOneSignal, isPushSubscribed, scheduleNextNotification } from './utils/onesignal'
 import { getSetting, setSetting } from './utils/db'
-import { onAuth } from './utils/firebase'
+import { onAuth, handleRedirectResult } from './utils/firebase'
 import {
   isSyncDue, markSyncDone, getLastSyncDate,
   uploadBackup, downloadBackup, hasCloudBackup,
 } from './utils/cloudSync'
+import { OverviewScreen } from './screens/OverviewScreen'
 import { HealthScreen } from './screens/HealthScreen'
 import { WeightScreen } from './screens/WeightScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
@@ -17,6 +18,14 @@ import { MedicalCardScreen } from './screens/MedicalCardScreen'
 import { InstallPrompt } from './components/InstallPrompt'
 import { useTranslation } from 'react-i18next'
 
+function IconOverview() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    </svg>
+  )
+}
 function IconHealth() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,7 +53,7 @@ function IconSettings() {
 
 export default function App() {
   const { t } = useTranslation()
-  const [tab, setTab] = useState('health')
+  const [tab, setTab] = useState('overview')
   // setupMode: null | 'add' | { dog } (edit)
   const [setupMode, setSetupMode] = useState(null)
   const [scanOpen,        setScanOpen]        = useState(false)
@@ -63,6 +72,9 @@ export default function App() {
     else document.body.classList.remove('medical-card-open')
     return () => document.body.classList.remove('medical-card-open')
   }, [medicalCardOpen])
+
+  // ── Handle Google redirect return (iOS Safari / PWA) ─────────────────────
+  useEffect(() => { handleRedirectResult() }, [])
 
   // ── Auth listener — runs once on mount ───────────────────────────────────
   useEffect(() => {
@@ -203,9 +215,10 @@ export default function App() {
   }
 
   const NAV = [
-    { id: 'health',   icon: <IconHealth />,   label: t('nav.health') },
-    { id: 'weight',   icon: <IconWeight />,   label: t('nav.weight') },
-    { id: 'settings', icon: <IconSettings />, label: t('nav.settings') },
+    { id: 'overview', icon: <IconOverview />,  label: t('nav.overview') },
+    { id: 'health',   icon: <IconHealth />,    label: t('nav.health') },
+    { id: 'weight',   icon: <IconWeight />,    label: t('nav.weight') },
+    { id: 'settings', icon: <IconSettings />,  label: t('nav.settings') },
   ]
 
   return (
@@ -267,6 +280,12 @@ export default function App() {
 
       {/* ── Main app content (hidden in print when medical card is open) ── */}
       <div className="app-content">
+        {tab === 'overview' && (
+          <OverviewScreen
+            dog={dog} dogs={dogs} weights={weights}
+            onSelectDog={selectDog}
+          />
+        )}
         {tab === 'health' && (
           <HealthScreen
             dog={dog} dogs={dogs}
