@@ -136,6 +136,69 @@ export const ANTIPARASITIC_PRODUCTS = {
     type:             'tick+flea',
     intervalDays:     240,  // 8 months
   },
+  // Scalibor — very popular in AT/DE/ES; deltamethrin also repels sandflies
+  // (important in Spain and Mediterranean countries — Leishmania vector)
+  'Scalibor': {
+    activeIngredient: 'deltamethrin',
+    ingredientClass:  'pyrethroid',
+    type:             'tick+flea+sandfly',
+    intervalDays:     180,  // 6 months
+  },
+
+  // ── DE / AT market ───────────────────────────────────────────────────────
+  // Advocate (= Advantage Multi in some countries): imidacloprid + moxidectin
+  // Protects against fleas, heartworm, roundworms, hookworms, lungworm, mange
+  'Advocate': {
+    activeIngredient: 'imidacloprid + moxidectin',
+    ingredientClass:  'neonicotinoid+avermectin',
+    type:             'flea+worm',
+    intervalDays:     30,
+  },
+  // Capstar: fast-acting flea kill within 4 h; single acute dose, not preventive
+  'Capstar': {
+    activeIngredient: 'nitenpyram',
+    ingredientClass:  'neonicotinoid',
+    type:             'flea',
+    intervalDays:     null,  // acute / on-demand use
+  },
+  // Caniverm: broad-spectrum dewormer, common in DE/AT/PL/CZ
+  'Caniverm': {
+    activeIngredient: 'febantel + praziquantel + pyrantel',
+    ingredientClass:  'anthelmintic',
+    type:             'dewormer',
+    intervalDays:     null,
+  },
+  // Milprazon: milbemycin + praziquantel — alternative to Milbemax, DE/AT
+  'Milprazon': {
+    activeIngredient: 'milbemycin oxime + praziquantel',
+    ingredientClass:  'anthelmintic',
+    type:             'dewormer',
+    intervalDays:     null,
+  },
+
+  // ── ES / Southern Europe market ──────────────────────────────────────────
+  // Vectra 3D: very popular in Spain & Southern Europe; also repels sandflies
+  'Vectra 3D': {
+    activeIngredient: 'dinotefuran + permethrin + pyriproxyfen',
+    ingredientClass:  'neonicotinoid+pyrethroid',
+    type:             'tick+flea+sandfly',
+    intervalDays:     30,
+  },
+  // Effitix: fipronil + permethrin spot-on, common in ES/IT
+  'Effitix': {
+    activeIngredient: 'fipronil + permethrin',
+    ingredientClass:  'phenylpyrazole+pyrethroid',
+    type:             'tick+flea+sandfly',
+    intervalDays:     30,
+  },
+  // Leisguard: domperidone — NOT antiparasitic, used as Leishmania prophylaxis
+  // Listed here so reactions can be tracked; type = 'leishmania-prophylaxis'
+  'Leisguard': {
+    activeIngredient: 'domperidone',
+    ingredientClass:  'dopamine-antagonist',
+    type:             'leishmania-prophylaxis',
+    intervalDays:     null,
+  },
 
   // ── Dewormers ────────────────────────────────────────────────────────────
   'Drontal Junior': {

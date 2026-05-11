@@ -5,7 +5,7 @@
 export const breeds = [
   { id: 1,  name: "Labrador Retriever",         male: { min: 29, max: 36 }, female: { min: 25, max: 32 }, growth: [0.30,0.55,0.75,0.88,0.97,1.00] },
   { id: 2,  name: "German Shepherd",            male: { min: 30, max: 40 }, female: { min: 22, max: 32 }, growth: [0.28,0.52,0.72,0.85,0.96,1.00] },
-  { id: 3,  name: "Golden Retriever",           male: { min: 29, max: 34 }, female: { min: 25, max: 29 }, growth: [0.28,0.52,0.72,0.86,0.97,1.00] },
+  { id: 3,  name: "Golden Retriever",           male: { min: 29, max: 34 }, female: { min: 25, max: 32 }, growth: [0.28,0.52,0.72,0.86,0.97,1.00] },
   { id: 4,  name: "French Bulldog",             male: { min: 9,  max: 14 }, female: { min: 8,  max: 13 }, growth: [0.35,0.62,0.82,0.93,0.99,1.00] },
   { id: 5,  name: "Bulldog",                    male: { min: 23, max: 25 }, female: { min: 18, max: 23 }, growth: [0.33,0.60,0.80,0.92,0.99,1.00] },
   { id: 6,  name: "Poodle (Standard)",          male: { min: 20, max: 32 }, female: { min: 18, max: 28 }, growth: [0.27,0.50,0.70,0.84,0.96,1.00] },
