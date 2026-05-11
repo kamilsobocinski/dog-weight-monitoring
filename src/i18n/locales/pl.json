@@ -180,14 +180,15 @@
   },
   "scan": {
     "title": "Skanuj dokument",
-    "chooseType": "Co chcesz zeskanowac?",
-    "typeProfile": "Profil psa (strona z opisem)",
-    "typeVaccination": "Szczepienia",
-    "typeAntiparasitic": "Odrobaczanie / pasozytnica",
-    "choosePhoto": "Wybierz zdjecie strony z paszportu lub ksiazeczki zdrowia",
+    "chooseDoc": "Jaki dokument chcesz zeskanować?",
+    "chooseDocHint": "Wybierz kraj lub typ dokumentu — pokażemy dokładnie którą stronę otworzyć",
+    "chooseSection": "Co chcesz zeskanować?",
+    "chooseSectionHint": "Wybierz sekcję — jeden skan = jedna strona dokumentu",
+    "lookFor": "Co powinno być widoczne na tej stronie:",
+    "readyToScan": "Otwórz dokument na wskazanej stronie i zrób zdjęcie",
     "processing": "Rozpoznawanie tekstu...",
-    "processingNote": "Moze potrwac do 30 sekund",
-    "reviewNote": "Sprawdz i uzupelnij dane wykryte ze skanu",
+    "processingNote": "Może potrwać do 30 sekund",
+    "reviewNote": "Sprawdź i uzupełnij dane wykryte ze skanu — pola pomarańczowe nie zostały rozpoznane",
     "notDetected": "Nie wykryto",
     "colour": "Umaszczenie",
     "chip": "Nr czipu (15 cyfr)",
@@ -197,7 +198,7 @@
     "scanAgain": "Skanuj ponownie",
     "rawText": "Surowy tekst OCR (diagnostyka)",
     "saved": "Dane zapisane!",
-    "error": "Blad rozpoznawania — sprobuj ponownie"
+    "error": "Błąd rozpoznawania — spróbuj ponownie"
   },
   "auth": {
     "title": "Konto i backup",
