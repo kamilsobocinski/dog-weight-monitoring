@@ -161,6 +161,27 @@
     "androidBtn": "Zainstaluj aplikacje",
     "dismiss": "Moze pozniej"
   },
+  "scan": {
+    "title": "Skanuj dokument",
+    "chooseType": "Co chcesz zeskanowac?",
+    "typeProfile": "Profil psa (strona z opisem)",
+    "typeVaccination": "Szczepienia",
+    "typeAntiparasitic": "Odrobaczanie / pasozytnica",
+    "choosePhoto": "Wybierz zdjecie strony z paszportu lub ksiazeczki zdrowia",
+    "processing": "Rozpoznawanie tekstu...",
+    "processingNote": "Moze potrwac do 30 sekund",
+    "reviewNote": "Sprawdz i uzupelnij dane wykryte ze skanu",
+    "notDetected": "Nie wykryto",
+    "colour": "Umaszczenie",
+    "chip": "Nr czipu (15 cyfr)",
+    "addEntry": "Dodaj wpis",
+    "entryType": "Rodzaj preparatu",
+    "save": "Zapisz dane",
+    "scanAgain": "Skanuj ponownie",
+    "rawText": "Surowy tekst OCR (diagnostyka)",
+    "saved": "Dane zapisane!",
+    "error": "Blad rozpoznawania — sprobuj ponownie"
+  },
   "errors": {
     "weightInvalid": "Podaj prawidlowa wage",
     "weightTooLow": "Waga wydaje sie zbyt mala",

@@ -161,6 +161,27 @@
     "androidBtn": "Install app",
     "dismiss": "Maybe later"
   },
+  "scan": {
+    "title": "Scan document",
+    "chooseType": "What do you want to scan?",
+    "typeProfile": "Dog profile (description page)",
+    "typeVaccination": "Vaccinations",
+    "typeAntiparasitic": "Deworming / parasites",
+    "choosePhoto": "Choose a photo of the passport or health booklet page",
+    "processing": "Recognising text...",
+    "processingNote": "This may take up to 30 seconds",
+    "reviewNote": "Check and complete the data detected from the scan",
+    "notDetected": "Not detected",
+    "colour": "Colour",
+    "chip": "Chip number (15 digits)",
+    "addEntry": "Add entry",
+    "entryType": "Product type",
+    "save": "Save data",
+    "scanAgain": "Scan again",
+    "rawText": "Raw OCR text (diagnostics)",
+    "saved": "Data saved!",
+    "error": "Recognition error — please try again"
+  },
   "errors": {
     "weightInvalid": "Please enter a valid weight",
     "weightTooLow": "Weight seems too low",

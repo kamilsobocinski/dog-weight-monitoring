@@ -448,7 +448,7 @@ function AntiparasiticTab({ dog, type, t, showToast }) {
 
 // ─── Main HealthScreen (unified: weight + health) ─────────────────────────────
 
-export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate }) {
+export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onScan }) {
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
   const [activeTab, setActiveTab] = useState('weight')
@@ -485,12 +485,18 @@ export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate }) {
             <img src={dog.photo} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}
-        <div>
+        <div style={{ flex: 1 }}>
           <DogSelector dogs={dogs} selectedDog={dog} onSelect={onSelectDog} />
           <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 4 }}>
             {dog.breedName} · {dogAge(dog.birthdate, t)}
           </div>
         </div>
+        {onScan && (
+          <button className="btn btn-secondary" style={{ padding: '8px 12px', fontSize: 13, flexShrink: 0 }}
+            onClick={onScan}>
+            📷 {t('scan.title')}
+          </button>
+        )}
       </div>
 
       {/* Sub-tab bar */}

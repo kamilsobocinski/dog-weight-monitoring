@@ -161,6 +161,27 @@
     "androidBtn": "App installieren",
     "dismiss": "Vielleicht spaeter"
   },
+  "scan": {
+    "title": "Dokument scannen",
+    "chooseType": "Was moechten Sie scannen?",
+    "typeProfile": "Hundeprofil (Beschreibungsseite)",
+    "typeVaccination": "Impfungen",
+    "typeAntiparasitic": "Entwurmung / Parasiten",
+    "choosePhoto": "Foto der Reisepass- oder Gesundheitsheftseite auswaehlen",
+    "processing": "Texterkennung laeuft...",
+    "processingNote": "Kann bis zu 30 Sekunden dauern",
+    "reviewNote": "Gescannte Daten pruefen und ergaenzen",
+    "notDetected": "Nicht erkannt",
+    "colour": "Fellfarbe",
+    "chip": "Chipnummer (15 Ziffern)",
+    "addEntry": "Eintrag hinzufuegen",
+    "entryType": "Praeparattyp",
+    "save": "Daten speichern",
+    "scanAgain": "Erneut scannen",
+    "rawText": "OCR-Rohtext (Diagnose)",
+    "saved": "Daten gespeichert!",
+    "error": "Erkennungsfehler — bitte erneut versuchen"
+  },
   "errors": {
     "weightInvalid": "Bitte ein gueltiges Gewicht eingeben",
     "weightTooLow": "Gewicht erscheint zu niedrig",

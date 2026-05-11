@@ -9,6 +9,7 @@ import { HistoryScreen } from './screens/HistoryScreen'
 import { HealthScreen } from './screens/HealthScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { SetupScreen } from './screens/SetupScreen'
+import { ScanScreen } from './screens/ScanScreen'
 import { InstallPrompt } from './components/InstallPrompt'
 import { useTranslation } from 'react-i18next'
 
@@ -55,6 +56,7 @@ export default function App() {
   const [tab, setTab] = useState('dashboard')
   // setupMode: null | 'add' | { dog } (edit)
   const [setupMode, setSetupMode] = useState(null)
+  const [scanOpen, setScanOpen] = useState(false)
 
   const { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight } = useDog()
 
@@ -141,10 +143,21 @@ export default function App() {
 
   return (
     <div className="app">
+      {scanOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--surface)', overflowY: 'auto' }}>
+          <ScanScreen
+            dog={dog}
+            onClose={() => setScanOpen(false)}
+            onSaved={() => setScanOpen(false)}
+          />
+        </div>
+      )}
+
       {tab === 'dashboard' && (
         <HealthScreen
           dog={dog} dogs={dogs} weights={weights}
           onSelectDog={selectDog} onNavigate={setTab}
+          onScan={() => setScanOpen(true)}
         />
       )}
       {tab === 'add' && (
