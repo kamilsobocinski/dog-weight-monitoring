@@ -161,6 +161,23 @@
     "androidBtn": "Zainstaluj aplikacje",
     "dismiss": "Moze pozniej"
   },
+  "medCard": {
+    "title": "Karta medyczna",
+    "back": "Powrot",
+    "printBtn": "Drukuj / Zapisz PDF",
+    "generatedOn": "Wygenerowano",
+    "dogInfo": "Dane psa",
+    "chipNo": "Nr czipu",
+    "colour": "Umaszczenie",
+    "weightSection": "Historia wagi",
+    "perMonth": "mies.",
+    "trendBased": "z {{n}} pomiarow",
+    "vaccinationsSection": "Szczepienia",
+    "dewormingSection": "Odrobaczanie",
+    "parasitesSection": "Ochrona przed pasozytami",
+    "noData": "Brak wpisow",
+    "reaction": "Reakcja"
+  },
   "scan": {
     "title": "Skanuj dokument",
     "chooseType": "Co chcesz zeskanowac?",

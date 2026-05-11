@@ -10,6 +10,7 @@ import { HealthScreen } from './screens/HealthScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { SetupScreen } from './screens/SetupScreen'
 import { ScanScreen } from './screens/ScanScreen'
+import { MedicalCardScreen } from './screens/MedicalCardScreen'
 import { InstallPrompt } from './components/InstallPrompt'
 import { useTranslation } from 'react-i18next'
 
@@ -56,7 +57,15 @@ export default function App() {
   const [tab, setTab] = useState('dashboard')
   // setupMode: null | 'add' | { dog } (edit)
   const [setupMode, setSetupMode] = useState(null)
-  const [scanOpen, setScanOpen] = useState(false)
+  const [scanOpen,        setScanOpen]        = useState(false)
+  const [medicalCardOpen, setMedicalCardOpen] = useState(false)
+
+  // Add body class so print CSS can hide the app content
+  useEffect(() => {
+    if (medicalCardOpen) document.body.classList.add('medical-card-open')
+    else document.body.classList.remove('medical-card-open')
+    return () => document.body.classList.remove('medical-card-open')
+  }, [medicalCardOpen])
 
   const { dog, dogs, weights, loading, selectDog, saveDogProfile, removeDog, addWeightEntry, removeWeight } = useDog()
 
@@ -143,6 +152,7 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* ── Overlays (scan + medical card) ── */}
       {scanOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'var(--surface)', overflowY: 'auto' }}>
           <ScanScreen
@@ -152,12 +162,24 @@ export default function App() {
           />
         </div>
       )}
+      {medicalCardOpen && (
+        <div className="medical-card-wrapper" style={{ position: 'fixed', inset: 0, zIndex: 200, background: '#fff', overflowY: 'auto' }}>
+          <MedicalCardScreen
+            dog={dog}
+            weights={weights}
+            onClose={() => setMedicalCardOpen(false)}
+          />
+        </div>
+      )}
 
+      {/* ── Main app content (hidden in print when medical card is open) ── */}
+      <div className="app-content">
       {tab === 'dashboard' && (
         <HealthScreen
           dog={dog} dogs={dogs} weights={weights}
           onSelectDog={selectDog} onNavigate={setTab}
           onScan={() => setScanOpen(true)}
+          onMedicalCard={() => setMedicalCardOpen(true)}
         />
       )}
       {tab === 'add' && (
@@ -193,6 +215,7 @@ export default function App() {
       </nav>
 
       <InstallPrompt />
+      </div>{/* end .app-content */}
     </div>
   )
 }

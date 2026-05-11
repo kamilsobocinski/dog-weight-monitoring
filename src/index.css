@@ -82,6 +82,56 @@ html, body, #root {
   overflow: hidden;
 }
 
+.app-content {
+  display: contents; /* transparent wrapper — no layout effect */
+}
+
+/* ── Medical card overlay ── */
+.medical-card-overlay {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: #fff;
+  color: #0f172a;
+}
+
+/* ── Print styles ── */
+@media print {
+  /* When medical card is open, hide the rest of the app */
+  body.medical-card-open .app-content { display: none !important; }
+
+  /* Always hide utility elements */
+  .no-print { display: none !important; }
+
+  /* Remove fixed/absolute positioning from wrapper so it flows as a normal page */
+  .medical-card-wrapper {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    inset: auto !important;
+  }
+  .medical-card-overlay {
+    display: block !important;
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Clean page layout */
+  html, body, #root, .app {
+    height: auto !important;
+    overflow: visible !important;
+    max-width: none !important;
+    background: white !important;
+  }
+
+  /* Remove box shadows in tables */
+  .medical-card-content * { box-shadow: none !important; }
+
+  /* Page margins */
+  @page { margin: 15mm 12mm; }
+}
+
 .screen {
   flex: 1;
   overflow-y: auto;

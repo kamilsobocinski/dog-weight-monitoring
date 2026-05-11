@@ -161,6 +161,23 @@
     "androidBtn": "Install app",
     "dismiss": "Maybe later"
   },
+  "medCard": {
+    "title": "Medical card",
+    "back": "Back",
+    "printBtn": "Print / Save PDF",
+    "generatedOn": "Generated on",
+    "dogInfo": "Dog info",
+    "chipNo": "Chip no.",
+    "colour": "Colour",
+    "weightSection": "Weight history",
+    "perMonth": "mo.",
+    "trendBased": "from {{n}} measurements",
+    "vaccinationsSection": "Vaccinations",
+    "dewormingSection": "Deworming",
+    "parasitesSection": "Parasite prevention",
+    "noData": "No records",
+    "reaction": "Reaction"
+  },
   "scan": {
     "title": "Scan document",
     "chooseType": "What do you want to scan?",

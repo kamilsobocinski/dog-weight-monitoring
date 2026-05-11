@@ -6,6 +6,7 @@ import {
   ReferenceLine, ReferenceArea, ResponsiveContainer,
 } from 'recharts'
 import { getBreedById, getIdealWeightAtAge } from '../data/breeds'
+import { calcRealTrend } from '../utils/trend'
 import { DogSelector } from '../components/DogSelector'
 import {
   getVaccinations, addVaccination, deleteVaccination,
@@ -90,12 +91,7 @@ function WeightTab({ dog, weights, onNavigate, t }) {
 
   const latestWeight = weights.length > 0 ? weights[weights.length - 1] : null
 
-  const trend = useMemo(() => {
-    if (weights.length < 2) return 'stable'
-    const diff = weights[weights.length - 1].value - weights[weights.length - 2].value
-    if (Math.abs(diff) < 0.1) return 'stable'
-    return diff > 0 ? 'up' : 'down'
-  }, [weights])
+  const trend = useMemo(() => calcRealTrend(weights), [weights])
 
   const status = useMemo(() => {
     if (!latestWeight || !idealRange) return null
@@ -139,10 +135,21 @@ function WeightTab({ dog, weights, onNavigate, t }) {
         </div>
         <div className="stat-card">
           <div className="stat-label">{t('dashboard.trend')}</div>
-          <div className="stat-value" style={{ fontSize: 18 }}>
-            {trend === 'up' ? t('dashboard.trendUp') :
-             trend === 'down' ? t('dashboard.trendDown') : t('dashboard.trendStable')}
+          <div className="stat-value" style={{ fontSize: 16,
+            color: trend.direction === 'up' ? 'var(--orange)' : trend.direction === 'down' ? 'var(--blue)' : 'var(--green)' }}>
+            {trend.direction === 'up'   ? t('dashboard.trendUp')   :
+             trend.direction === 'down' ? t('dashboard.trendDown') : t('dashboard.trendStable')}
           </div>
+          {trend.direction !== 'stable' && trend.n >= 2 && (
+            <div className="stat-sub" style={{ fontSize: 11 }}>
+              {trend.kgPerMonth > 0 ? '+' : ''}{trend.kgPerMonth} kg/{t('medCard.perMonth')}
+            </div>
+          )}
+          {trend.n >= 3 && (
+            <div className="stat-sub" style={{ fontSize: 10, color: 'var(--gray-400)' }}>
+              {t('medCard.trendBased', { n: trend.n })}
+            </div>
+          )}
         </div>
         <div className="stat-card">
           <div className="stat-label">{t('dashboard.lastMeasured')}</div>
@@ -448,7 +455,7 @@ function AntiparasiticTab({ dog, type, t, showToast }) {
 
 // ─── Main HealthScreen (unified: weight + health) ─────────────────────────────
 
-export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onScan }) {
+export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onScan, onMedicalCard }) {
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
   const [activeTab, setActiveTab] = useState('weight')
@@ -491,12 +498,20 @@ export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onSc
             {dog.breedName} · {dogAge(dog.birthdate, t)}
           </div>
         </div>
-        {onScan && (
-          <button className="btn btn-secondary" style={{ padding: '8px 12px', fontSize: 13, flexShrink: 0 }}
-            onClick={onScan}>
-            📷 {t('scan.title')}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          {onScan && (
+            <button className="btn btn-secondary" style={{ padding: '8px 10px', fontSize: 12 }}
+              onClick={onScan}>
+              📷 {t('scan.title')}
+            </button>
+          )}
+          {onMedicalCard && (
+            <button className="btn btn-secondary" style={{ padding: '8px 10px', fontSize: 12 }}
+              onClick={onMedicalCard}>
+              📄 {t('medCard.title')}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Sub-tab bar */}

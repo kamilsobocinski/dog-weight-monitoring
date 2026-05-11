@@ -161,6 +161,23 @@
     "androidBtn": "App installieren",
     "dismiss": "Vielleicht spaeter"
   },
+  "medCard": {
+    "title": "Gesundheitskarte",
+    "back": "Zurueck",
+    "printBtn": "Drucken / Als PDF speichern",
+    "generatedOn": "Erstellt am",
+    "dogInfo": "Hundedaten",
+    "chipNo": "Chipnummer",
+    "colour": "Fellfarbe",
+    "weightSection": "Gewichtsverlauf",
+    "perMonth": "Mon.",
+    "trendBased": "aus {{n}} Messungen",
+    "vaccinationsSection": "Impfungen",
+    "dewormingSection": "Entwurmung",
+    "parasitesSection": "Parasitenschutz",
+    "noData": "Keine Eintraege",
+    "reaction": "Reaktion"
+  },
   "scan": {
     "title": "Dokument scannen",
     "chooseType": "Was moechten Sie scannen?",

@@ -161,6 +161,23 @@
     "androidBtn": "Instalar app",
     "dismiss": "Quizás más tarde"
   },
+  "medCard": {
+    "title": "Ficha médica",
+    "back": "Volver",
+    "printBtn": "Imprimir / Guardar PDF",
+    "generatedOn": "Generado el",
+    "dogInfo": "Datos del perro",
+    "chipNo": "Nº chip",
+    "colour": "Color",
+    "weightSection": "Historial de peso",
+    "perMonth": "mes",
+    "trendBased": "de {{n}} mediciones",
+    "vaccinationsSection": "Vacunas",
+    "dewormingSection": "Desparasitación",
+    "parasitesSection": "Protección antiparasitaria",
+    "noData": "Sin registros",
+    "reaction": "Reacción"
+  },
   "scan": {
     "title": "Escanear documento",
     "chooseType": "¿Qué deseas escanear?",
