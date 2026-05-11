@@ -284,6 +284,7 @@ export default function App() {
           <OverviewScreen
             dog={dog} dogs={dogs} weights={weights}
             onSelectDog={selectDog}
+            onMedicalCard={() => setMedicalCardOpen(true)}
           />
         )}
         {tab === 'health' && (

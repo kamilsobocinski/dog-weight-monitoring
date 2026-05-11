@@ -71,7 +71,7 @@ function VaxStatus({ validUntil }) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function OverviewScreen({ dog, dogs, weights, onSelectDog }) {
+export function OverviewScreen({ dog, dogs, weights, onSelectDog, onMedicalCard }) {
   const { t } = useTranslation()
 
   const [vaccinations, setVaccinations] = useState([])
@@ -157,6 +157,15 @@ export function OverviewScreen({ dog, dogs, weights, onSelectDog }) {
             {dog.sex && ` · ${dog.sex === 'female' ? t('setup.female') : t('setup.male')}`}
           </div>
         </div>
+        {onMedicalCard && (
+          <button
+            className="btn btn-secondary"
+            style={{ padding: '8px 12px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0, display: 'flex', alignItems: 'center', gap: 5 }}
+            onClick={onMedicalCard}
+          >
+            📄 {t('medCard.printBtn').split('/')[0].trim()}
+          </button>
+        )}
       </div>
 
       {/* ── Profil ── */}
