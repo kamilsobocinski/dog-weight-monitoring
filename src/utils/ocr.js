@@ -272,15 +272,29 @@ export function parseVaccinations(text) {
   }
 
   // ── Valid-until date ──
-  // EU passport: "Ważne od" = valid FROM (= same as vaccination date)
-  // "Ważne do" / "gültig bis" = valid UNTIL (expiry) — this is what we want
-  const validUntil = dateAfterKeyword(text, [
+  // EU passport: "Ważne od" = valid FROM, "Ważne do" = valid UNTIL (expiry)
+  // Also handle MM/YYYY format (e.g. "Termin ważności 08/2027")
+  let validUntil = dateAfterKeyword(text, [
     'Ważne do', 'ważne do', 'WAŻNE DO',
     'gültig bis', 'Gültig bis',
     'Valid until', 'VALID UNTIL',
     'Válida hasta', 'Caducidad',
     'valid through',
-  ]) || (dates.length >= 2 ? dates[1] : '')
+  ])
+  if (!validUntil) {
+    // Try MM/YYYY format after "Termin" keywords
+    for (const kw of ['Termin waznosci', 'Termin ważności', 'VALID UNTIL', 'WAŻNE DO', 'gültig bis']) {
+      const idx = text.toLowerCase().indexOf(kw.toLowerCase())
+      if (idx === -1) continue
+      const after = text.slice(idx, idx + 80)
+      const m = after.match(/\b(\d{2})[/.](\d{4})\b/)
+      if (m) {
+        const yr = parseInt(m[2])
+        if (yr >= 2020 && yr <= 2040) { validUntil = `${m[2]}-${m[1]}-01`; break }
+      }
+    }
+  }
+  if (!validUntil) validUntil = dates.length >= 2 ? dates[1] : ''
 
   // ── Build results ──
   if (dates.length >= 1) {
