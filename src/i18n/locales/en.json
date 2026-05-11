@@ -27,7 +27,9 @@
     "refNotFound": "No reference data found for this breed",
     "noBreedSelected": "Please select a breed first",
     "addTitle": "Add dog",
-    "editTitle": "Edit profile"
+    "editTitle": "Edit profile",
+    "photoCamera": "Camera",
+    "photoGallery": "Gallery"
   },
   "weight": {
     "title": "Add measurement",

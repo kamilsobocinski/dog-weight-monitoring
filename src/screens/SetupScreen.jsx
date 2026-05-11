@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { breeds } from '../data/breeds'
 import { Toast, useToast } from '../components/Toast'
+import { resizeImage } from '../utils/imageUtils'
 
 export function SetupScreen({ dog, onSave, onCancel }) {
   const { t } = useTranslation()
@@ -14,7 +15,24 @@ export function SetupScreen({ dog, onSave, onCancel }) {
   const [selectedBreed, setSelectedBreed] = useState(dog ? { id: dog.breedId, name: dog.breedName } : null)
   const [showList, setShowList] = useState(false)
   const [errors, setErrors] = useState({})
-  const searchRef = useRef(null)
+  const [photo, setPhoto] = useState(dog?.photo || null)
+  const [photoLoading, setPhotoLoading] = useState(false)
+  const searchRef   = useRef(null)
+  const galleryRef  = useRef(null)
+  const cameraRef   = useRef(null)
+
+  const handlePhotoFile = async (file) => {
+    if (!file) return
+    setPhotoLoading(true)
+    try {
+      const base64 = await resizeImage(file, 400, 0.82)
+      setPhoto(base64)
+    } catch (e) {
+      console.warn('Photo resize failed', e)
+    } finally {
+      setPhotoLoading(false)
+    }
+  }
 
   const filtered = breeds.filter(b =>
     b.name.toLowerCase().includes(breedSearch.toLowerCase())
@@ -31,7 +49,7 @@ export function SetupScreen({ dog, onSave, onCancel }) {
 
   const handleSave = () => {
     if (!validate()) return
-    const data = { name: name.trim(), sex, birthdate, breedId: selectedBreed.id, breedName: selectedBreed.name }
+    const data = { name: name.trim(), sex, birthdate, breedId: selectedBreed.id, breedName: selectedBreed.name, photo: photo || null }
     if (dog?.id) data.id = dog.id
     onSave(data)
     showToast(t('setup.saved'))
@@ -59,6 +77,50 @@ export function SetupScreen({ dog, onSave, onCancel }) {
         {onCancel && (
           <button className="btn btn-ghost" onClick={onCancel}>✕</button>
         )}
+      </div>
+
+      {/* Photo */}
+      <div className="form-group" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 20 }}>
+        <div
+          style={{
+            width: 110, height: 110, borderRadius: '50%', overflow: 'hidden',
+            background: 'var(--gray-100)', border: '3px solid var(--gray-200)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 12, cursor: 'pointer', position: 'relative',
+          }}
+          onClick={() => galleryRef.current?.click()}
+        >
+          {photoLoading ? (
+            <span className="spinner" style={{ width: 28, height: 28 }} />
+          ) : photo ? (
+            <img src={photo} alt="dog" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ fontSize: 44 }}>🐶</span>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: 13 }}
+            onClick={() => cameraRef.current?.click()}>
+            📷 {t('setup.photoCamera')}
+          </button>
+          <button type="button" className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: 13 }}
+            onClick={() => galleryRef.current?.click()}>
+            🖼 {t('setup.photoGallery')}
+          </button>
+          {photo && (
+            <button type="button" className="btn btn-danger" style={{ padding: '8px 12px', fontSize: 13 }}
+              onClick={() => setPhoto(null)}>
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Hidden file inputs */}
+        <input ref={galleryRef} type="file" accept="image/*" style={{ display: 'none' }}
+          onChange={e => handlePhotoFile(e.target.files?.[0])} />
+        <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+          onChange={e => handlePhotoFile(e.target.files?.[0])} />
       </div>
 
       <div className="form-group">

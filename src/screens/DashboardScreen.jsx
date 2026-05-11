@@ -83,7 +83,15 @@ export function DashboardScreen({ dog, dogs, weights, onSelectDog, onNavigate })
   return (
     <div className="screen">
       {/* Header with dog selector */}
-      <div className="page-header">
+      <div className="page-header" style={{ display: 'flex', alignItems: 'center' }}>
+        {dog.photo && (
+          <div style={{
+            width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+            border: '2px solid var(--gray-200)', flexShrink: 0, marginRight: 12,
+          }}>
+            <img src={dog.photo} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+        )}
         <div>
           <DogSelector dogs={dogs} selectedDog={dog} onSelect={onSelectDog} />
           <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 4 }}>

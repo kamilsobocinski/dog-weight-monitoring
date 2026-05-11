@@ -27,7 +27,9 @@
     "refNotFound": "Brak danych wzorcowych dla tej rasy",
     "noBreedSelected": "Najpierw wybierz rase",
     "addTitle": "Dodaj psa",
-    "editTitle": "Edytuj profil"
+    "editTitle": "Edytuj profil",
+    "photoCamera": "Aparat",
+    "photoGallery": "Galeria"
   },
   "weight": {
     "title": "Dodaj pomiar",

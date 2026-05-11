@@ -27,7 +27,9 @@
     "refNotFound": "Keine Referenzdaten fuer diese Rasse gefunden",
     "noBreedSelected": "Bitte zuerst eine Rasse auswaehlen",
     "addTitle": "Hund hinzufuegen",
-    "editTitle": "Profil bearbeiten"
+    "editTitle": "Profil bearbeiten",
+    "photoCamera": "Kamera",
+    "photoGallery": "Galerie"
   },
   "weight": {
     "title": "Messung hinzufuegen",

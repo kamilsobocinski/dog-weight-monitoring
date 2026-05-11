@@ -27,7 +27,9 @@
     "refNotFound": "No se encontraron datos de referencia para esta raza",
     "noBreedSelected": "Por favor selecciona primero una raza",
     "addTitle": "Añadir perro",
-    "editTitle": "Editar perfil"
+    "editTitle": "Editar perfil",
+    "photoCamera": "Cámara",
+    "photoGallery": "Galería"
   },
   "weight": {
     "title": "Añadir medición",
