@@ -8,10 +8,8 @@ import {
   isSyncDue, markSyncDone, getLastSyncDate,
   uploadBackup, downloadBackup, hasCloudBackup,
 } from './utils/cloudSync'
-import { DashboardScreen } from './screens/DashboardScreen'
-import { AddWeightScreen } from './screens/AddWeightScreen'
-import { HistoryScreen } from './screens/HistoryScreen'
 import { HealthScreen } from './screens/HealthScreen'
+import { WeightScreen } from './screens/WeightScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { SetupScreen } from './screens/SetupScreen'
 import { ScanScreen } from './screens/ScanScreen'
@@ -19,32 +17,19 @@ import { MedicalCardScreen } from './screens/MedicalCardScreen'
 import { InstallPrompt } from './components/InstallPrompt'
 import { useTranslation } from 'react-i18next'
 
-function IconDashboard() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-    </svg>
-  )
-}
-function IconAdd() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
-    </svg>
-  )
-}
-function IconHistory() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-    </svg>
-  )
-}
 function IconHealth() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </svg>
+  )
+}
+function IconWeight() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="7" r="4"/>
+      <path d="M5 21v-2a7 7 0 0 1 14 0v2"/>
+      <line x1="3" y1="21" x2="21" y2="21"/>
     </svg>
   )
 }
@@ -59,7 +44,7 @@ function IconSettings() {
 
 export default function App() {
   const { t } = useTranslation()
-  const [tab, setTab] = useState('dashboard')
+  const [tab, setTab] = useState('health')
   // setupMode: null | 'add' | { dog } (edit)
   const [setupMode, setSetupMode] = useState(null)
   const [scanOpen,        setScanOpen]        = useState(false)
@@ -218,10 +203,9 @@ export default function App() {
   }
 
   const NAV = [
-    { id: 'dashboard', icon: <IconHealth />,    label: t('nav.health') },
-    { id: 'add',       icon: <IconAdd />,       label: t('nav.add') },
-    { id: 'history',   icon: <IconHistory />,   label: t('nav.history') },
-    { id: 'settings',  icon: <IconSettings />,  label: t('nav.settings') },
+    { id: 'health',   icon: <IconHealth />,   label: t('nav.health') },
+    { id: 'weight',   icon: <IconWeight />,   label: t('nav.weight') },
+    { id: 'settings', icon: <IconSettings />, label: t('nav.settings') },
   ]
 
   return (
@@ -283,51 +267,47 @@ export default function App() {
 
       {/* ── Main app content (hidden in print when medical card is open) ── */}
       <div className="app-content">
-      {tab === 'dashboard' && (
-        <HealthScreen
-          dog={dog} dogs={dogs} weights={weights}
-          onSelectDog={selectDog} onNavigate={setTab}
-          onScan={() => setScanOpen(true)}
-          onMedicalCard={() => setMedicalCardOpen(true)}
-        />
-      )}
-      {tab === 'add' && (
-        <AddWeightScreen
-          dog={dog} onAdd={addWeightEntry} onNavigate={setTab}
-        />
-      )}
-      {tab === 'history' && (
-        <HistoryScreen
-          dog={dog} weights={weights} onDelete={removeWeight}
-        />
-      )}
-      {tab === 'settings' && (
-        <SettingsScreen
-          dog={dog} dogs={dogs}
-          onAddDog={() => setSetupMode('add')}
-          onEditDog={() => setSetupMode(dog)}
-          onDeleteDog={removeDog}
-          user={user}
-          syncing={syncing}
-          lastSync={lastSync}
-          onBackup={handleManualBackup}
-        />
-      )}
+        {tab === 'health' && (
+          <HealthScreen
+            dog={dog} dogs={dogs}
+            onSelectDog={selectDog} onNavigate={setTab}
+            onScan={() => setScanOpen(true)}
+            onMedicalCard={() => setMedicalCardOpen(true)}
+          />
+        )}
+        {tab === 'weight' && (
+          <WeightScreen
+            dog={dog} weights={weights}
+            onAdd={addWeightEntry} onDelete={removeWeight}
+          />
+        )}
+        {tab === 'settings' && (
+          <SettingsScreen
+            dog={dog} dogs={dogs}
+            onAddDog={() => setSetupMode('add')}
+            onEditDog={() => setSetupMode(dog)}
+            onDeleteDog={removeDog}
+            user={user}
+            syncing={syncing}
+            lastSync={lastSync}
+            onBackup={handleManualBackup}
+          />
+        )}
 
-      <nav className="bottom-nav">
-        {NAV.map(n => (
-          <button
-            key={n.id}
-            className={`nav-item${tab === n.id ? ' active' : ''}`}
-            onClick={() => setTab(n.id)}
-          >
-            {n.icon}
-            {n.label}
-          </button>
-        ))}
-      </nav>
+        <nav className="bottom-nav">
+          {NAV.map(n => (
+            <button
+              key={n.id}
+              className={`nav-item${tab === n.id ? ' active' : ''}`}
+              onClick={() => setTab(n.id)}
+            >
+              {n.icon}
+              {n.label}
+            </button>
+          ))}
+        </nav>
 
-      <InstallPrompt />
+        <InstallPrompt />
       </div>{/* end .app-content */}
     </div>
   )

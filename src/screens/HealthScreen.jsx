@@ -1,12 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { format, differenceInMonths, differenceInDays, parseISO } from 'date-fns'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ReferenceLine, ReferenceArea, ResponsiveContainer,
-} from 'recharts'
-import { getBreedById, getIdealWeightAtAge } from '../data/breeds'
-import { calcRealTrend } from '../utils/trend'
 import { DogSelector } from '../components/DogSelector'
 import {
   getVaccinations, addVaccination, deleteVaccination,
@@ -70,146 +64,6 @@ function ConfirmDelete({ onConfirm, onCancel, t }) {
     <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
       <button className="btn btn-danger"    style={{ flex: 1, padding: '6px' }} onClick={onConfirm}>{t('settings.confirmYes')}</button>
       <button className="btn btn-secondary" style={{ flex: 1, padding: '6px' }} onClick={onCancel}>{t('settings.confirmNo')}</button>
-    </div>
-  )
-}
-
-// ─── Weight Tab (former DashboardScreen content) ──────────────────────────────
-
-function WeightTab({ dog, weights, onNavigate, t }) {
-  const breed = dog ? getBreedById(dog.breedId) : null
-
-  const ageMonths = useMemo(() => {
-    if (!dog?.birthdate) return 0
-    return differenceInMonths(new Date(), parseISO(dog.birthdate))
-  }, [dog])
-
-  const idealRange = useMemo(() => {
-    if (!breed || !dog) return null
-    return getIdealWeightAtAge(breed, dog.sex, ageMonths)
-  }, [breed, dog, ageMonths])
-
-  const latestWeight = weights.length > 0 ? weights[weights.length - 1] : null
-
-  const trend = useMemo(() => calcRealTrend(weights), [weights])
-
-  const status = useMemo(() => {
-    if (!latestWeight || !idealRange) return null
-    if (latestWeight.value < idealRange.min) return 'low'
-    if (latestWeight.value > idealRange.max) return 'high'
-    return 'good'
-  }, [latestWeight, idealRange])
-
-  const chartData = useMemo(() => weights.map(w => ({
-    date: format(parseISO(w.date), 'd MMM'),
-    weight: w.value,
-  })), [weights])
-
-  const yDomain = useMemo(() => {
-    const vals = weights.map(w => w.value)
-    if (idealRange) { vals.push(idealRange.min, idealRange.max) }
-    if (!vals.length) return ['auto', 'auto']
-    return [+(Math.min(...vals) * 0.93).toFixed(1), +(Math.max(...vals) * 1.07).toFixed(1)]
-  }, [weights, idealRange])
-
-  return (
-    <div>
-      {/* Stats */}
-      <div className="stat-grid">
-        <div className="stat-card">
-          <div className="stat-label">{t('dashboard.currentWeight')}</div>
-          <div className="stat-value">{latestWeight ? `${latestWeight.value} kg` : '—'}</div>
-          {status && (
-            <div className="stat-sub">
-              <span className={`status-${status}`}>
-                {status === 'good' ? t('dashboard.withinRange') :
-                 status === 'high' ? t('dashboard.above') : t('dashboard.below')}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">{t('dashboard.idealRange')}</div>
-          <div className="stat-value" style={{ fontSize: 16 }}>{idealRange ? `${idealRange.min}–${idealRange.max}` : '—'}</div>
-          <div className="stat-sub">kg</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">{t('dashboard.trend')}</div>
-          <div className="stat-value" style={{ fontSize: 16,
-            color: trend.direction === 'up' ? 'var(--orange)' : trend.direction === 'down' ? 'var(--blue)' : 'var(--green)' }}>
-            {trend.direction === 'up'   ? t('dashboard.trendUp')   :
-             trend.direction === 'down' ? t('dashboard.trendDown') : t('dashboard.trendStable')}
-          </div>
-          {trend.direction !== 'stable' && trend.n >= 2 && (
-            <div className="stat-sub" style={{ fontSize: 11 }}>
-              {trend.kgPerMonth > 0 ? '+' : ''}{trend.kgPerMonth} kg/{t('medCard.perMonth')}
-            </div>
-          )}
-          {trend.n >= 3 && (
-            <div className="stat-sub" style={{ fontSize: 10, color: 'var(--gray-400)' }}>
-              {t('medCard.trendBased', { n: trend.n })}
-            </div>
-          )}
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">{t('dashboard.lastMeasured')}</div>
-          <div className="stat-value" style={{ fontSize: 16 }}>
-            {latestWeight ? format(parseISO(latestWeight.date), 'dd.MM.yy') : '—'}
-          </div>
-          <div className="stat-sub">{weights.length} entries</div>
-        </div>
-      </div>
-
-      {/* Chart */}
-      {weights.length > 0 ? (
-        <div className="card">
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: 'var(--gray-700)' }}>
-            📈 {t('dashboard.chartTitle')}
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-100)" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--gray-400)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--gray-400)' }} domain={yDomain} />
-              <Tooltip
-                contentStyle={{ borderRadius: 8, border: '1px solid var(--gray-200)', fontSize: 13 }}
-                formatter={(v) => [`${v} kg`]}
-              />
-              {idealRange && <ReferenceArea y1={idealRange.min} y2={idealRange.max} fill="#16a34a" fillOpacity={0.15} stroke="#16a34a" strokeOpacity={0.5} strokeWidth={1} />}
-              {idealRange && <ReferenceLine y={idealRange.min} stroke="#16a34a" strokeDasharray="4 2" strokeWidth={1} label={{ value: `${idealRange.min} kg`, fill: '#16a34a', fontSize: 10, position: 'insideTopRight' }} />}
-              {idealRange && <ReferenceLine y={idealRange.max} stroke="#16a34a" strokeDasharray="4 2" strokeWidth={1} label={{ value: `${idealRange.max} kg`, fill: '#16a34a', fontSize: 10, position: 'insideBottomRight' }} />}
-              <Line type="monotone" dataKey="weight" stroke="#2563eb" strokeWidth={2.5} dot={{ fill: '#2563eb', r: 4 }} activeDot={{ r: 6 }} name={t('dashboard.yourDog')} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <div className="empty-state">
-          <div className="empty-state-icon">📊</div>
-          <div className="empty-state-text">{t('dashboard.noData')}</div>
-          <div style={{ marginTop: 20 }}>
-            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 24px' }} onClick={() => onNavigate('add')}>
-              + {t('weight.title')}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Status banner */}
-      {idealRange && latestWeight && (
-        <div className="card" style={{
-          background: status === 'good' ? 'var(--green-light)' : status === 'high' ? 'var(--orange-light)' : 'var(--blue-light)',
-          border: `1px solid ${status === 'good' ? 'var(--green)' : status === 'high' ? 'var(--orange)' : 'var(--blue)'}`,
-        }}>
-          <div style={{ fontWeight: 700, fontSize: 15 }}>
-            {status === 'good' && `✅ ${t('dashboard.withinRange')}`}
-            {status === 'high' && `⚠️ ${(latestWeight.value - idealRange.max).toFixed(1)} kg ${t('dashboard.above')}`}
-            {status === 'low'  && `ℹ️ ${(idealRange.min - latestWeight.value).toFixed(1)} kg ${t('dashboard.below')}`}
-          </div>
-          <div style={{ fontSize: 13, marginTop: 4, opacity: .8 }}>
-            {t('dashboard.idealRange')}: {idealRange.min}–{idealRange.max} kg
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -453,18 +307,17 @@ function AntiparasiticTab({ dog, type, t, showToast }) {
   )
 }
 
-// ─── Main HealthScreen (unified: weight + health) ─────────────────────────────
+// ─── Main HealthScreen ────────────────────────────────────────────────────────
 
-export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onScan, onMedicalCard }) {
+export function HealthScreen({ dog, dogs, onSelectDog, onNavigate, onScan, onMedicalCard }) {
   const { t } = useTranslation()
   const { toast, showToast } = useToast()
-  const [activeTab, setActiveTab] = useState('weight')
+  const [activeTab, setActiveTab] = useState('vaccinations')
 
   const TABS = [
-    { id: 'weight',       label: t('health.tabs.weight'),        icon: '⚖️' },
-    { id: 'vaccinations', label: t('health.tabs.vaccinations'),  icon: '💉' },
-    { id: 'deworming',    label: t('health.tabs.deworming'),     icon: '💊' },
-    { id: 'parasites',    label: t('health.tabs.parasites'),     icon: '🐛' },
+    { id: 'vaccinations', label: t('health.tabs.vaccinations'), icon: '💉' },
+    { id: 'deworming',    label: t('health.tabs.deworming'),    icon: '💊' },
+    { id: 'parasites',    label: t('health.tabs.parasites'),    icon: '🐛' },
   ]
 
   if (!dog) {
@@ -485,36 +338,38 @@ export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onSc
 
   return (
     <div className="screen">
-      {/* Header */}
+      {/* ── Dog info header — tylko imię + rasa, BEZ przycisków w headerze ── */}
       <div className="page-header" style={{ display: 'flex', alignItems: 'center' }}>
         {dog.photo && (
-          <div style={{ width: 52, height: 52, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--gray-200)', flexShrink: 0, marginRight: 12 }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--gray-200)', flexShrink: 0, marginRight: 12 }}>
             <img src={dog.photo} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         )}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           <DogSelector dogs={dogs} selectedDog={dog} onSelect={onSelectDog} />
-          <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: 'var(--gray-500)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {dog.breedName} · {dogAge(dog.birthdate, t)}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          {onScan && (
-            <button className="btn btn-secondary" style={{ padding: '8px 10px', fontSize: 12 }}
-              onClick={onScan}>
-              📷 {t('scan.title')}
-            </button>
-          )}
-          {onMedicalCard && (
-            <button className="btn btn-secondary" style={{ padding: '8px 10px', fontSize: 12 }}
-              onClick={onMedicalCard}>
-              📄 {t('medCard.title')}
-            </button>
-          )}
-        </div>
       </div>
 
-      {/* Sub-tab bar */}
+      {/* ── Przyciski akcji — jeden pod drugim, pełna szerokość ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+        {onScan && (
+          <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', gap: 8 }}
+            onClick={onScan}>
+            📷 {t('scan.title')}
+          </button>
+        )}
+        {onMedicalCard && (
+          <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', gap: 8 }}
+            onClick={onMedicalCard}>
+            📄 {t('medCard.title')}
+          </button>
+        )}
+      </div>
+
+      {/* ── Zakładki zdrowotne ── */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 16, overflowX: 'auto', paddingBottom: 2 }}>
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -529,7 +384,6 @@ export function HealthScreen({ dog, dogs, weights, onSelectDog, onNavigate, onSc
         ))}
       </div>
 
-      {activeTab === 'weight'       && <WeightTab dog={dog} weights={weights} onNavigate={onNavigate} t={t} />}
       {activeTab === 'vaccinations' && <VaccinationsTab dog={dog} t={t} showToast={showToast} />}
       {activeTab === 'deworming'    && <AntiparasiticTab dog={dog} type="deworming" t={t} showToast={showToast} />}
       {activeTab === 'parasites'    && <AntiparasiticTab dog={dog} type="parasites" t={t} showToast={showToast} />}
