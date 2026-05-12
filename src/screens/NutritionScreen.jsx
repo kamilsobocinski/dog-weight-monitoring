@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { generateNutritionPlan, calcWeightStatus } from '../utils/gemini'
+import { generateNutritionPlan, calcWeightStatus, recognizeFoodPackaging } from '../utils/gemini'
 import { getNutritionPlans, addNutritionPlan, deleteNutritionPlan,
          getVaccinations, getDewormings, getParasitePrevention,
          getCurrentDiet, autosaveDiet, saveDietVersion,
          getDietHistory, deleteDietVersion } from '../utils/db'
-import { runOCR, parseFoodLabel } from '../utils/ocr'
 import { resizeImage } from '../utils/imageUtils'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -266,14 +265,14 @@ function SavedItemRow({ item, onEdit, onDelete, t }) {
 
 // ─── Add / Edit item form ─────────────────────────────────────────────────────
 
-function ItemForm({ initial, onSave, onCancel, t }) {
+function ItemForm({ initial, onSave, onCancel, t, language }) {
   const [form, setForm]     = useState(initial || blankForm('dry'))
   const [scanning, setScan] = useState(false)
+  const [scanInfo, setScanInfo] = useState('')   // success summary shown after scan
   const fileRef             = useRef(null)
 
   const upd = patch => setForm(f => {
     const next = { ...f, ...patch }
-    // When type changes to treat → switch to pcs mode automatically
     if (patch.type === 'treat' && f.unit !== 'pcs') next.unit = 'pcs'
     if (patch.type && patch.type !== 'treat' && f.unit === 'pcs') next.unit = 'g'
     return next
@@ -283,20 +282,37 @@ function ItemForm({ initial, onSave, onCancel, t }) {
     const file = e.target.files?.[0]
     if (!file) return
     setScan(true)
+    setScanInfo('')
     try {
-      const dataUrl = await resizeImage(file)
-      const blob    = await (await fetch(dataUrl)).blob()
-      const text    = await runOCR(blob)
-      const parsed  = parseFoodLabel(text)
-      const name    = [parsed.brand, parsed.productName].filter(Boolean).join(' ')
-      const ctx     = [
-        parsed.ingredients ? `Skład: ${parsed.ingredients.slice(0,300)}` : '',
-        parsed.analysis    ? `Analiza: ${parsed.analysis.slice(0,200)}` : '',
-      ].filter(Boolean).join('\n')
-      upd({ name: name || form.name, scannedLabel: ctx || text.slice(0,400) })
+      const dataUrl = await resizeImage(file, 1200, 0.88)
+      const result  = await recognizeFoodPackaging(dataUrl, language || 'pl')
+
+      // Build display name
+      const name = [result.brand, result.productName].filter(Boolean).join(' ').trim()
+
+      // Build scannedLabel for AI context
+      const parts = []
+      if (result.ingredients)    parts.push(`Składniki: ${result.ingredients}`)
+      if (result.protein != null) parts.push(`Białko: ${result.protein}%`)
+      if (result.fat != null)    parts.push(`Tłuszcz: ${result.fat}%`)
+      if (result.fibre != null)  parts.push(`Błonnik: ${result.fibre}%`)
+      if (result.moisture != null) parts.push(`Wilgotność: ${result.moisture}%`)
+      if (result.kcalPer100g != null) parts.push(`Energia: ${result.kcalPer100g} kcal/100g`)
+      if (result.feedingNote)    parts.push(`Porcja: ${result.feedingNote}`)
+
+      upd({ name: name || form.name, scannedLabel: parts.join(' | ') })
+
+      // Build info badge text
+      const info = [
+        name,
+        result.protein != null ? `Białko ${result.protein}%` : '',
+        result.fat != null     ? `Tłuszcz ${result.fat}%`  : '',
+        result.kcalPer100g != null ? `${result.kcalPer100g} kcal/100g` : '',
+      ].filter(Boolean).join(' · ')
+      setScanInfo(info)
     } catch (err) {
       console.error('Scan error:', err)
-      alert(t('nutrition.scanError'))
+      alert('Nie udało się rozpoznać opakowania.\n' + err.message)
     } finally {
       setScan(false)
       e.target.value = ''
@@ -352,7 +368,12 @@ function ItemForm({ initial, onSave, onCancel, t }) {
             {!scanning && t('nutrition.scanPackageShort')}
           </button>
         </div>
-        {form.scannedLabel && (
+        {scanInfo && (
+          <div style={{ marginTop:5, fontSize:11, color:'#166534', background:'#f0fdf4', borderRadius:6, padding:'4px 9px', lineHeight:1.4 }}>
+            ✅ {scanInfo}
+          </div>
+        )}
+        {!scanInfo && form.scannedLabel && (
           <div style={{ marginTop:5, fontSize:11, color:'#166534', background:'#f0fdf4', borderRadius:6, padding:'3px 9px' }}>
             ✅ {t('nutrition.scannedPackage')}
           </div>
@@ -518,6 +539,7 @@ function PlanCard({ plan, dog, onDelete, onShowPdf, defaultExpanded, t }) {
 
 export function NutritionScreen({ dog, weights }) {
   const { t, i18n } = useTranslation()
+  const language = i18n.language || 'pl'
 
   const [savedItems,      setSavedItems]      = useState([])
   const [showForm,        setShowForm]        = useState(false)
@@ -694,7 +716,7 @@ export function NutritionScreen({ dog, weights }) {
           // If this item is being edited, show form inline
           if (editItem?.index === idx) {
             return (
-              <ItemForm key={item.id} initial={editItem.item} t={t}
+              <ItemForm key={item.id} initial={editItem.item} t={t} language={language}
                 onSave={handleSaveEdit}
                 onCancel={() => setEditItem(null)} />
             )
@@ -708,7 +730,7 @@ export function NutritionScreen({ dog, weights }) {
 
         {/* Add item form */}
         {showForm && (
-          <ItemForm t={t}
+          <ItemForm t={t} language={language}
             initial={blankForm(formInitialType)}
             onSave={handleAddItem}
             onCancel={() => setShowForm(false)} />

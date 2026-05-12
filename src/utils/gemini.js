@@ -345,6 +345,62 @@ async function tryModel(model, prompt) {
   return text
 }
 
+/**
+ * Recognize a dog food packaging photo using Gemini Vision.
+ * Returns { brand, productName, ingredients, protein, fat, fibre, moisture, kcalPer100g, feedingNote }
+ */
+export async function recognizeFoodPackaging(imageDataUrl, language = 'pl') {
+  if (!GEMINI_KEY) throw new Error('Brak klucza Gemini API')
+
+  const base64   = imageDataUrl.split(',')[1]
+  const mimeType = imageDataUrl.match(/data:(.*?);/)?.[1] || 'image/jpeg'
+
+  const langNote = { pl: 'po polsku', en: 'in English', de: 'auf Deutsch', es: 'en español' }[language] || 'po polsku'
+
+  const prompt = `To jest opakowanie karmy dla psa. Odczytaj i zwróć dane ${langNote} jako czysty JSON (bez markdown, bez komentarzy):
+{
+  "brand": "nazwa marki (np. Royal Canin, Purina, Hill's, Animonda)",
+  "productName": "pełna nazwa produktu z opakowania",
+  "ingredients": "pierwsze 5-8 składników z listy składów",
+  "protein": <liczba % lub null>,
+  "fat": <liczba % lub null>,
+  "fibre": <liczba % lub null>,
+  "moisture": <liczba % lub null>,
+  "kcalPer100g": <liczba kcal/100g lub null>,
+  "feedingNote": "zalecane dzienne porcje jeśli widoczne, lub null"
+}
+Jeśli czegoś nie widać — wstaw null. Zwróć WYŁĄCZNIE sam JSON.`
+
+  const errors = []
+  for (const model of GEMINI_MODELS) {
+    try {
+      const url = `${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [
+            { inlineData: { mimeType, data: base64 } },
+            { text: prompt },
+          ]}],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 512 },
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(`[${model}] ${json.error?.message || res.status}`)
+      const text = json.candidates?.[0]?.content?.parts?.[0]?.text
+      if (!text) throw new Error(`[${model}] Pusta odpowiedź`)
+      // Strip any accidental markdown fences
+      const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+      return JSON.parse(cleaned)
+    } catch (err) {
+      errors.push(err.message)
+      if (err.message.includes('API_KEY_INVALID') || err.message.includes('403') || err.message.includes('PERMISSION_DENIED')) break
+    }
+  }
+  throw new Error('Rozpoznawanie nieudane: ' + (errors[errors.length - 1] || 'nieznany błąd'))
+}
+
 export async function generateNutritionPlan(dog, weights, foodItems, language = 'pl', healthData = {}) {
   if (!GEMINI_KEY) {
     throw new Error('Brak klucza API Gemini. Sprawdź ustawienia VITE_GEMINI_API_KEY.')
