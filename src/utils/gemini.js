@@ -129,11 +129,12 @@ function formatFoodForPrompt(foodItems) {
 }
 
 /**
- * Build a detailed prompt for Gemini with all dog data.
+ * Build a detailed prompt for Gemini with ALL available dog data.
  */
-function buildPrompt(dog, weights, foodItems, language = 'pl') {
+function buildPrompt(dog, weights, foodItems, language = 'pl', healthData = {}) {
   const latestWeight = weights.length > 0 ? weights[weights.length - 1].value : null
   const age = calcAge(dog?.birthdate)
+  const ageMonths = calcAgeMonths(dog?.birthdate)
   const ws = calcWeightStatus(dog, weights)
 
   const langInstructions = {
@@ -144,50 +145,119 @@ function buildPrompt(dog, weights, foodItems, language = 'pl') {
   }
   const langNote = langInstructions[language] || langInstructions.pl
 
-  const lines = [
-    `Jesteś ekspertem od żywienia psów. ${langNote}`,
-    '',
-    '## Dane psa:',
-    dog?.name    ? `- Imię: ${dog.name}` : '',
-    dog?.breedName ? `- Rasa: ${dog.breedName}` : '',
-    dog?.sex     ? `- Płeć: ${dog.sex === 'female' ? 'suka' : 'pies'}` : '',
-    age          ? `- Wiek: ${age}` : '',
-    latestWeight ? `- Aktualna waga: ${latestWeight} kg` : '',
-  ].filter(Boolean)
-
-  // ── Weight status vs breed norm ── (this is the key context for AI)
-  if (ws.status !== 'unknown') {
-    lines.push(`- Norma wagowa dla tej rasy i wieku: ${ws.idealMin}–${ws.idealMax} kg`)
-    if (ws.status === 'overweight') {
-      lines.push(`- ⚠️ NADWAGA: pies waży o ${Math.abs(ws.diffKg)} kg za dużo (+${Math.abs(ws.diffPct)}% powyżej normy)`)
-    } else if (ws.status === 'underweight') {
-      lines.push(`- ⚠️ NIEDOWAGA: pies waży o ${Math.abs(ws.diffKg)} kg za mało (${ws.diffPct}% poniżej normy)`)
-    } else {
-      lines.push(`- ✅ Waga w normie (${ws.diffKg >= 0 ? '+' : ''}${ws.diffKg} kg od środka normy)`)
-    }
+  // ── Determine life stage ──
+  let lifeStage = 'dorosły'
+  if (ageMonths !== null) {
+    if (ageMonths < 12) lifeStage = 'szczenię'
+    else if (ageMonths < 18) lifeStage = 'młody dorosły (rośnie)'
+    else if (ageMonths > 84) lifeStage = 'senior (7+ lat)'
   }
 
-  // Weight trend
-  if (weights.length >= 2) {
-    const oldest = weights[0]
-    const newest = weights[weights.length - 1]
-    const diffKg = (newest.value - oldest.value).toFixed(1)
-    const diffSign = diffKg > 0 ? '+' : ''
-    lines.push(`- Trend wagi (ostatnie ${weights.length} pomiarów): ${diffSign}${diffKg} kg`)
+  // ── Determine size category from breed norm ──
+  let sizeCategory = ''
+  if (ws.idealMax !== undefined) {
+    if (ws.idealMax <= 5) sizeCategory = 'miniaturowy (do 5 kg)'
+    else if (ws.idealMax <= 10) sizeCategory = 'mały (5–10 kg)'
+    else if (ws.idealMax <= 25) sizeCategory = 'średni (10–25 kg)'
+    else if (ws.idealMax <= 45) sizeCategory = 'duży (25–45 kg)'
+    else sizeCategory = 'olbrzym (powyżej 45 kg)'
+  }
+
+  const lines = [
+    `Jesteś weterynarzem-dietetykiem i ekspertem od żywienia psów. ${langNote}`,
+    '',
+    '## PEŁNY PROFIL PSA:',
+    dog?.name      ? `- Imię: **${dog.name}**` : '',
+    dog?.breedName ? `- Rasa: **${dog.breedName}**` : '',
+    dog?.sex       ? `- Płeć: **${dog.sex === 'female' ? 'suka' : 'pies (samiec)'}**` : '',
+    age            ? `- Wiek: **${age}** (etap życia: ${lifeStage})` : '',
+    sizeCategory   ? `- Kategoria wielkości: ${sizeCategory}` : '',
+  ].filter(Boolean)
+
+  // ── Weight status vs breed norm ──
+  if (ws.status !== 'unknown') {
+    lines.push(`- Norma wagowa dla tej rasy/płci/wieku: **${ws.idealMin}–${ws.idealMax} kg**`)
+    lines.push(`- Aktualna waga: **${latestWeight} kg**`)
+    if (ws.status === 'overweight') {
+      lines.push(`- ⚠️ NADWAGA: o ${Math.abs(ws.diffKg)} kg za dużo (+${Math.abs(ws.diffPct)}% powyżej normy)`)
+    } else if (ws.status === 'underweight') {
+      lines.push(`- ⚠️ NIEDOWAGA: o ${Math.abs(ws.diffKg)} kg za mało (${Math.abs(ws.diffPct)}% poniżej normy)`)
+    } else {
+      lines.push(`- ✅ Waga prawidłowa (${ws.diffKg >= 0 ? '+' : ''}${ws.diffKg} kg od środka normy)`)
+    }
+  } else if (latestWeight) {
+    lines.push(`- Aktualna waga: **${latestWeight} kg** (brak danych wzorcowych dla rasy)`)
   }
 
   lines.push('')
 
-  // Current food info — structured
+  // ── Full weight history ──
+  if (weights.length > 0) {
+    lines.push('## HISTORIA WAGI (wszystkie pomiary):')
+    // Show all measurements, newest first
+    const sorted = [...weights].sort((a, b) => new Date(b.date) - new Date(a.date))
+    sorted.forEach(w => {
+      const d = new Date(w.date).toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
+      const note = w.note ? ` — notatka: "${w.note}"` : ''
+      lines.push(`- ${d}: **${w.value} kg**${note}`)
+    })
+
+    if (weights.length >= 2) {
+      const oldest = weights[0], newest = weights[weights.length - 1]
+      const diffKg = (newest.value - oldest.value).toFixed(2)
+      const spanDays = Math.round((new Date(newest.date) - new Date(oldest.date)) / (1000*60*60*24))
+      const spanMonths = (spanDays / 30.44).toFixed(1)
+      const sign = diffKg > 0 ? '+' : ''
+      const kgPerMonth = spanDays > 0 ? (diffKg / (spanDays / 30.44)).toFixed(2) : 0
+      lines.push(`- Zmiana łączna: **${sign}${diffKg} kg** przez ${spanMonths} miesięcy (${sign}${kgPerMonth} kg/miesiąc)`)
+    }
+    lines.push('')
+  }
+
+  // ── Health records ──
+  const { vaccinations = [], dewormings = [], parasitePrevention = [] } = healthData
+
+  if (dewormings.length > 0 || vaccinations.length > 0 || parasitePrevention.length > 0) {
+    lines.push('## DANE ZDROWOTNE:')
+
+    if (dewormings.length > 0) {
+      const last = [...dewormings].sort((a,b) => new Date(b.date) - new Date(a.date))[0]
+      const d = new Date(last.date).toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
+      const monthsAgo = Math.round((Date.now() - new Date(last.date)) / (1000*60*60*24*30.44))
+      lines.push(`- Ostatnie odrobaczanie: ${d} (${monthsAgo} mies. temu)${monthsAgo > 3 ? ' — ⚠️ może być wskazane odrobaczenie (wpływa na wchłanianie składników)' : ''}`)
+    } else {
+      lines.push('- Odrobaczanie: brak danych (ważne dla prawidłowego wchłaniania składników odżywczych)')
+    }
+
+    if (vaccinations.length > 0) {
+      const last = [...vaccinations].sort((a,b) => new Date(b.date) - new Date(a.date))[0]
+      const d = new Date(last.date).toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
+      lines.push(`- Ostatnie szczepienie: ${d} (${last.vaccineType || 'rodzaj nieznany'})`)
+    }
+
+    if (parasitePrevention.length > 0) {
+      const last = [...parasitePrevention].sort((a,b) => new Date(b.date) - new Date(a.date))[0]
+      const d = new Date(last.date).toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
+      lines.push(`- Ostatnia ochrona przed pasożytami zewnętrznymi: ${d}`)
+    }
+
+    lines.push('')
+  }
+
+  // ── Current food ──
   const foodText = formatFoodForPrompt(foodItems)
   if (foodText) {
-    lines.push('## Obecna dieta psa:')
+    lines.push('## OBECNA DIETA PSA:')
     lines.push(foodText)
+    lines.push('')
+  } else {
+    lines.push('## OBECNA DIETA PSA:')
+    lines.push('- Brak danych o obecnej diecie — zaproponuj dietę od podstaw dla tej rasy, płci i wieku.')
     lines.push('')
   }
 
   // ── Task — adapt based on weight status ──
-  lines.push('## Zadanie:')
+  lines.push('## ZADANIE:')
 
   if (ws.status === 'overweight') {
     lines.push(`⚠️ Ten pies ma NADWAGĘ — jest o ${Math.abs(ws.diffKg)} kg za ciężki. Zaproponuj DIETĘ ODCHUDZAJĄCĄ.`)
@@ -275,12 +345,12 @@ async function tryModel(model, prompt) {
   return text
 }
 
-export async function generateNutritionPlan(dog, weights, foodItems, language = 'pl') {
+export async function generateNutritionPlan(dog, weights, foodItems, language = 'pl', healthData = {}) {
   if (!GEMINI_KEY) {
     throw new Error('Brak klucza API Gemini. Sprawdź ustawienia VITE_GEMINI_API_KEY.')
   }
 
-  const prompt = buildPrompt(dog, weights, foodItems, language)
+  const prompt = buildPrompt(dog, weights, foodItems, language, healthData)
 
   const errors = []
   for (const model of GEMINI_MODELS) {

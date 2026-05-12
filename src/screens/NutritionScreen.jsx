@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { generateNutritionPlan, calcWeightStatus } from '../utils/gemini'
-import { getNutritionPlans, addNutritionPlan, deleteNutritionPlan } from '../utils/db'
+import { getNutritionPlans, addNutritionPlan, deleteNutritionPlan,
+         getVaccinations, getDewormings, getParasitePrevention } from '../utils/db'
 import { runOCR, parseFoodLabel } from '../utils/ocr'
 import { resizeImage } from '../utils/imageUtils'
 
@@ -523,17 +524,26 @@ export function NutritionScreen({ dog, weights }) {
   const [generating,      setGenerating]      = useState(false)
   const [plans,           setPlans]           = useState([])
   const [error,           setError]           = useState('')
-  const [pdfPlan,         setPdfPlan]         = useState(null)  // plan to show in PDF modal
+  const [pdfPlan,         setPdfPlan]         = useState(null)
+  const [healthData,      setHealthData]      = useState({})
 
   useEffect(() => {
     if (!dog?.id) return
+    // Load nutrition plans + restore last saved items
     getNutritionPlans(dog.id).then(plans => {
       setPlans(plans)
-      // Restore saved items from the most recent plan so user doesn't lose their diet data
       if (plans.length > 0 && plans[0].foodItems?.length > 0) {
         setSavedItems(plans[0].foodItems)
       }
     }).catch(() => {})
+    // Load health records for the AI prompt
+    Promise.all([
+      getVaccinations(dog.id).catch(() => []),
+      getDewormings(dog.id).catch(() => []),
+      getParasitePrevention(dog.id).catch(() => []),
+    ]).then(([vaccinations, dewormings, parasitePrevention]) => {
+      setHealthData({ vaccinations, dewormings, parasitePrevention })
+    })
   }, [dog?.id])
 
   // Add item
@@ -560,7 +570,7 @@ export function NutritionScreen({ dog, weights }) {
     setGenerating(true)
     setError('')
     try {
-      const plan = await generateNutritionPlan(dog, weights, savedItems, i18n.language || 'pl')
+      const plan = await generateNutritionPlan(dog, weights, savedItems, i18n.language || 'pl', healthData)
       const record = { dogId: dog.id, plan, foodItems: savedItems }
       const id = await addNutritionPlan(record)
       const newPlan = { ...record, id, generatedAt: Date.now() }
