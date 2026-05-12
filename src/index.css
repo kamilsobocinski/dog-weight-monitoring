@@ -128,8 +128,18 @@ html, body, #root {
   /* Remove box shadows in tables */
   .medical-card-content * { box-shadow: none !important; }
 
+  /* Nutrition PDF modal print support */
+  body.nutrition-pdf-open .app-content { display: none !important; }
+  .nutrition-pdf-wrapper {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+    inset: auto !important;
+  }
+  .nutrition-pdf-no-print { display: none !important; }
+
   /* Page margins */
-  @page { margin: 15mm 12mm; }
+  @page { margin: 15mm 18mm; }
 }
 
 .screen {

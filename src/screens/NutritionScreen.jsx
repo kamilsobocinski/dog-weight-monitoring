@@ -64,54 +64,18 @@ export function formatFoodSummary(items) {
   }).join(' | ')
 }
 
-// ─── PDF export ───────────────────────────────────────────────────────────────
+// ─── PDF preview modal (in-app, no window.open) ──────────────────────────────
 
-function markdownToHtml(text) {
-  if (!text) return ''
-  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-  const bold = s => s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-  const lines = text.split('\n')
-  let html = '', inList = false
-  for (const raw of lines) {
-    const line = raw.trim()
-    if (line.startsWith('## ')) {
-      if (inList) { html += '</ul>'; inList = false }
-      html += `<h3>${esc(line.slice(3))}</h3>`
-    } else if (line.startsWith('- ') || /^\d+\.\s/.test(line)) {
-      if (!inList) { html += '<ul>'; inList = true }
-      html += `<li>${bold(esc(line.replace(/^[-*]\s/,'').replace(/^\d+\.\s/,'')))}</li>`
-    } else if (line === '') {
-      if (inList) { html += '</ul>'; inList = false }
-      html += '<br>'
-    } else {
-      if (inList) { html += '</ul>'; inList = false }
-      html += `<p>${bold(esc(line))}</p>`
-    }
-  }
-  if (inList) html += '</ul>'
-  return html
-}
+function PdfModal({ plan, dog, onClose }) {
+  // Add/remove body class for print CSS
+  useEffect(() => {
+    document.body.classList.add('nutrition-pdf-open')
+    return () => document.body.classList.remove('nutrition-pdf-open')
+  }, [])
 
-function exportNutritionPDF(plan, dog) {
   const d = new Date(plan.generatedAt)
   const dateStr = d.toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
   const timeStr = d.toLocaleTimeString('pl-PL', { hour:'2-digit', minute:'2-digit' })
-
-  let foodHtml = ''
-  if (plan.foodItems?.length) {
-    foodHtml = plan.foodItems.map(it => {
-      const icon = FOOD_TYPES.find(f => f.id === it.type)?.icon || '🍽️'
-      const dg = dailyGrams(it)
-      const dk = dailyKcal(it)
-      const dosage = it.unit === 'pcs'
-        ? `${it.piecesPerDay} szt × ${it.gramsPerPiece}g = <strong>${dg}g/dzień</strong>`
-        : it.frequency === 'daily'
-          ? `${it.timesPerDay}× po ${it.gramsPerPortion}g = <strong>${dg}g/dzień</strong>`
-          : `${it.gramsPerPortion}g, ${({few_week:'2-4×/tydz.',weekly:'1×/tydz.',occasionally:'okazjonalnie'})[it.frequency]||it.frequency}`
-      const kcal = dk > 0 ? ` (≈${dk} kcal)` : ''
-      return `<tr><td>${icon} <strong>${it.name||'—'}</strong></td><td>${dosage}${kcal}</td></tr>`
-    }).join('')
-  }
 
   let agStr = ''
   if (dog?.birthdate) {
@@ -120,48 +84,119 @@ function exportNutritionPDF(plan, dog) {
     agStr = y > 0 ? `${y} lat${mo > 0 ? ` ${mo} mies.` : ''}` : `${mo} mies.`
   }
 
-  const dogRows = [
-    dog?.name      && `<tr><th>Imię</th><td>${dog.name}</td></tr>`,
-    dog?.breedName && `<tr><th>Rasa</th><td>${dog.breedName}</td></tr>`,
-    dog?.sex       && `<tr><th>Płeć</th><td>${dog.sex==='female'?'Suka':'Pies'}</td></tr>`,
-    agStr          && `<tr><th>Wiek</th><td>${agStr}</td></tr>`,
-  ].filter(Boolean).join('')
+  const foodSummary = plan.foodItems?.length ? plan.foodItems : null
 
-  const html = `<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"/>
-<title>Plan diety – ${dog?.name||'Pies'}</title>
-<style>
-@page{size:A4;margin:18mm 20mm}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;font-size:11pt;color:#1a1a1a;line-height:1.55}
-.hdr{display:flex;justify-content:space-between;border-bottom:3px solid #e85d4a;padding-bottom:10px;margin-bottom:16px}
-.logo{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e85d4a,#c0392b);display:flex;align-items:center;justify-content:center;font-size:22px}
-.appname{font-size:20pt;font-weight:800;color:#e85d4a}
-.hero{background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid #fed7aa;border-radius:8px;padding:14px 18px;margin-bottom:16px;text-align:center}
-.hero h1{font-size:16pt;font-weight:800;color:#92400e}
-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10pt}
-th{background:#fef3c7;color:#92400e;font-weight:700;padding:5px 10px;text-align:left;border:1px solid #fed7aa}
-td{padding:5px 10px;border:1px solid #fed7aa}
-tr:nth-child(even) td{background:#fffbeb}
-.sec{font-size:10pt;font-weight:700;color:#92400e;margin:12px 0 4px;border-bottom:1px solid #fed7aa;padding-bottom:2px}
-.content h3{font-size:13pt;font-weight:800;margin:18px 0 6px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}
-.content p{margin:3px 0 5px}.content ul{padding-left:18px;margin:4px 0 8px}.content li{margin-bottom:3px}
-.ftr{margin-top:24px;padding-top:10px;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;font-size:8.5pt;color:#9ca3af}
-@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body>
-<div class="hdr"><div style="display:flex;align-items:center;gap:12px"><div class="logo">🐾</div><div><div class="appname">DogPass</div><div style="font-size:9pt;color:#666">Dbaj o zdrowie swojego psa</div></div></div>
-<div style="text-align:right;font-size:9pt;color:#666">Wygenerowano<br><strong>${dateStr}, ${timeStr}</strong></div></div>
-<div class="hero"><h1>🥩 Indywidualny plan diety</h1><p>Dieta stworzona przez AI specjalnie dla Twojego pupila</p><span style="display:inline-block;background:#92400e;color:#fff;font-size:8pt;font-weight:700;padding:2px 8px;border-radius:12px;margin-top:6px">🤖 Gemini AI</span></div>
-${dogRows?`<div class="sec">Dane psa</div><table>${dogRows}</table>`:''}
-${foodHtml?`<div class="sec">Obecna dieta</div><table><tr><th>Składnik</th><th>Dawkowanie</th></tr>${foodHtml}</table>`:''}
-<div class="content">${markdownToHtml(plan.plan)}</div>
-<div class="ftr"><span>Wygenerowano przez <strong style="color:#e85d4a">DogPass</strong></span><span>${dateStr}</span></div>
-<script>window.onload=function(){window.print()}</script>
-</body></html>`
+  return (
+    <div className="nutrition-pdf-wrapper" style={{
+      position:'fixed', inset:0, zIndex:300, background:'#fff',
+      overflowY:'auto', WebkitOverflowScrolling:'touch',
+    }}>
+      {/* Toolbar — hidden on print */}
+      <div className="nutrition-pdf-no-print" style={{
+        position:'sticky', top:0, zIndex:10,
+        background:'#fff', borderBottom:'1px solid #e5e7eb',
+        display:'flex', alignItems:'center', justifyContent:'space-between',
+        padding:'10px 16px', gap:8,
+      }}>
+        <div style={{ fontWeight:700, fontSize:15 }}>🥩 Plan diety</div>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => window.print()}
+            style={{ display:'flex', alignItems:'center', gap:6, padding:'8px 14px', borderRadius:8,
+              background:'#e85d4a', color:'#fff', border:'none', fontWeight:700, fontSize:13, cursor:'pointer' }}>
+            🖨️ Drukuj / PDF
+          </button>
+          <button onClick={onClose}
+            style={{ padding:'8px 14px', borderRadius:8, border:'1.5px solid var(--gray-200)',
+              background:'#fff', fontWeight:700, fontSize:13, cursor:'pointer' }}>
+            ✕ Zamknij
+          </button>
+        </div>
+      </div>
 
-  const win = window.open('','_blank','width=794,height=1123')
-  if (!win) { alert('Zezwól na otwieranie nowych okien'); return }
-  win.document.write(html)
-  win.document.close()
+      {/* Content */}
+      <div style={{ maxWidth:680, margin:'0 auto', padding:'24px 20px 48px' }}>
+
+        {/* Header */}
+        <div style={{ display:'flex', justifyContent:'space-between', borderBottom:'3px solid #e85d4a', paddingBottom:12, marginBottom:20, alignItems:'center' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:42, height:42, borderRadius:'50%', background:'linear-gradient(135deg,#e85d4a,#c0392b)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>🐾</div>
+            <div>
+              <div style={{ fontSize:20, fontWeight:800, color:'#e85d4a' }}>DogPass</div>
+              <div style={{ fontSize:11, color:'#666' }}>Dbaj o zdrowie swojego psa</div>
+            </div>
+          </div>
+          <div style={{ textAlign:'right', fontSize:11, color:'#666' }}>
+            Wygenerowano<br /><strong>{dateStr}, {timeStr}</strong>
+          </div>
+        </div>
+
+        {/* Hero */}
+        <div style={{ background:'linear-gradient(135deg,#fff7ed,#fef3c7)', border:'1px solid #fed7aa', borderRadius:10, padding:'14px 18px', marginBottom:20, textAlign:'center' }}>
+          <div style={{ fontSize:18, fontWeight:800, color:'#92400e', marginBottom:4 }}>🥩 Indywidualny plan diety</div>
+          <div style={{ fontSize:13, color:'#92400e', opacity:0.8 }}>Dieta stworzona przez AI specjalnie dla Twojego pupila</div>
+          <span style={{ display:'inline-block', background:'#92400e', color:'#fff', fontSize:11, fontWeight:700, padding:'2px 10px', borderRadius:12, marginTop:6 }}>🤖 Gemini AI</span>
+        </div>
+
+        {/* Dog info */}
+        {dog && (
+          <div style={{ marginBottom:18 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#92400e', borderBottom:'1px solid #fed7aa', paddingBottom:4, marginBottom:8 }}>Dane psa</div>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+              <tbody>
+                {dog.name      && <tr><td style={{ padding:'4px 8px', fontWeight:700, background:'#fef3c7', border:'1px solid #fed7aa', width:'30%' }}>Imię</td><td style={{ padding:'4px 8px', border:'1px solid #fed7aa' }}>{dog.name}</td></tr>}
+                {dog.breedName && <tr><td style={{ padding:'4px 8px', fontWeight:700, background:'#fef3c7', border:'1px solid #fed7aa' }}>Rasa</td><td style={{ padding:'4px 8px', border:'1px solid #fed7aa' }}>{dog.breedName}</td></tr>}
+                {dog.sex       && <tr><td style={{ padding:'4px 8px', fontWeight:700, background:'#fef3c7', border:'1px solid #fed7aa' }}>Płeć</td><td style={{ padding:'4px 8px', border:'1px solid #fed7aa' }}>{dog.sex==='female'?'Suka':'Pies'}</td></tr>}
+                {agStr         && <tr><td style={{ padding:'4px 8px', fontWeight:700, background:'#fef3c7', border:'1px solid #fed7aa' }}>Wiek</td><td style={{ padding:'4px 8px', border:'1px solid #fed7aa' }}>{agStr}</td></tr>}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Food items */}
+        {foodSummary && (
+          <div style={{ marginBottom:18 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'#92400e', borderBottom:'1px solid #fed7aa', paddingBottom:4, marginBottom:8 }}>Obecna dieta</div>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+              <thead>
+                <tr>
+                  <th style={{ padding:'5px 8px', background:'#fef3c7', border:'1px solid #fed7aa', textAlign:'left', color:'#92400e' }}>Składnik</th>
+                  <th style={{ padding:'5px 8px', background:'#fef3c7', border:'1px solid #fed7aa', textAlign:'left', color:'#92400e' }}>Dawkowanie</th>
+                </tr>
+              </thead>
+              <tbody>
+                {foodSummary.map((it, i) => {
+                  const ft = FOOD_TYPES.find(f => f.id === it.type)
+                  const dg = dailyGrams(it), dk = dailyKcal(it)
+                  const dosage = it.unit === 'pcs'
+                    ? `${it.piecesPerDay} szt × ${it.gramsPerPiece}g = ${dg}g/dzień`
+                    : it.frequency === 'daily'
+                      ? `${it.timesPerDay}× po ${it.gramsPerPortion}g = ${dg}g/dzień`
+                      : `${it.gramsPerPortion}g, ${{few_week:'2–4×/tydz.',weekly:'1×/tydz.',occasionally:'okazjonalnie'}[it.frequency]||it.frequency}`
+                  return (
+                    <tr key={i} style={{ background: i%2===1 ? '#fffbeb' : '#fff' }}>
+                      <td style={{ padding:'5px 8px', border:'1px solid #fed7aa' }}>{ft?.icon} <strong>{it.name||'—'}</strong></td>
+                      <td style={{ padding:'5px 8px', border:'1px solid #fed7aa' }}>{dosage}{dk>0?` (≈${dk} kcal)`:''}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Plan content */}
+        <div style={{ marginBottom:24 }}>
+          <MarkdownText text={plan.plan} />
+        </div>
+
+        {/* Footer */}
+        <div style={{ borderTop:'1px solid #e5e7eb', paddingTop:10, display:'flex', justifyContent:'space-between', fontSize:11, color:'#9ca3af' }}>
+          <span>Wygenerowano przez <strong style={{ color:'#e85d4a' }}>DogPass</strong></span>
+          <span>{dateStr}</span>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── Markdown renderer ────────────────────────────────────────────────────────
@@ -421,46 +456,53 @@ const stepBtn = {
 
 // ─── Plan card ────────────────────────────────────────────────────────────────
 
-function PlanCard({ plan, dog, onDelete, t }) {
-  const [expanded, setExpanded] = useState(false)
+function PlanCard({ plan, dog, onDelete, onShowPdf, defaultExpanded, t }) {
+  const [expanded, setExpanded] = useState(!!defaultExpanded)
   const d = new Date(plan.generatedAt)
   const dateStr = d.toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
   const timeStr = d.toLocaleTimeString('pl-PL', { hour:'2-digit', minute:'2-digit' })
-  const foodSummary = plan.foodItems?.length ? formatFoodSummary(plan.foodItems) : plan.currentFood || ''
 
   return (
     <div style={{ background:'var(--surface)', border:'1px solid var(--gray-200)', borderRadius:12, marginBottom:10, overflow:'hidden' }}>
+
+      {/* Header row — click to expand, no PDF button here */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 14px', cursor:'pointer' }} onClick={() => setExpanded(x=>!x)}>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:13, fontWeight:700 }}>🤖 {t('nutrition.plan')} · {dateStr} {timeStr}</div>
-          {!expanded && <div style={{ fontSize:12, color:'var(--gray-400)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-            {plan.plan.slice(0,160).replace(/#+\s/g,'').replace(/\*\*/g,'')}…
-          </div>}
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:6, marginLeft:8, flexShrink:0 }}>
-          <button title={t('nutrition.exportPdf')}
-            onClick={e => { e.stopPropagation(); exportNutritionPDF(plan, dog) }}
-            style={{ background:'#e85d4a', color:'#fff', border:'none', borderRadius:6, padding:'4px 9px', fontSize:12, fontWeight:700, cursor:'pointer' }}>
-            📄 PDF
-          </button>
-          <span style={{ fontSize:18, color:'var(--gray-400)' }}>{expanded?'▲':'▼'}</span>
-        </div>
-      </div>
-
-      {expanded && (
-        <div style={{ padding:'0 14px 14px', borderTop:'1px solid var(--gray-200)' }}>
-          {foodSummary && (
-            <div style={{ background:'var(--gray-100)', borderRadius:8, padding:'6px 10px', marginTop:10, marginBottom:8, fontSize:12, color:'var(--gray-600)' }}>
-              🍗 <strong>{t('nutrition.currentFood')}:</strong> {foodSummary}
+          {!expanded && (
+            <div style={{ fontSize:12, color:'var(--gray-400)', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+              {plan.plan.slice(0,140).replace(/#+\s/g,'').replace(/\*\*/g,'')}…
             </div>
           )}
-          <div style={{ marginTop:8 }}><MarkdownText text={plan.plan} /></div>
-          <div style={{ display:'flex', gap:8, marginTop:14 }}>
-            <button className="btn btn-primary" style={{ fontSize:13, padding:'7px 14px' }} onClick={() => exportNutritionPDF(plan, dog)}>
+        </div>
+        <span style={{ fontSize:18, color:'var(--gray-400)', marginLeft:8, flexShrink:0 }}>{expanded ? '▲' : '▼'}</span>
+      </div>
+
+      {/* Expanded content */}
+      {expanded && (
+        <div style={{ padding:'0 14px 16px', borderTop:'1px solid var(--gray-200)' }}>
+
+          {/* Diet summary pill */}
+          {plan.foodItems?.length > 0 && (
+            <div style={{ background:'var(--gray-100)', borderRadius:8, padding:'7px 12px', marginTop:12, marginBottom:4, fontSize:12, color:'var(--gray-600)' }}>
+              🍗 <strong>{t('nutrition.currentFood')}:</strong> {formatFoodSummary(plan.foodItems)}
+            </div>
+          )}
+
+          {/* Plan text */}
+          <div style={{ marginTop:12 }}>
+            <MarkdownText text={plan.plan} />
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ display:'flex', gap:8, marginTop:16 }}>
+            <button className="btn btn-primary" style={{ flex:1, fontSize:13, padding:'9px 0', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}
+              onClick={() => onShowPdf(plan)}>
               📄 {t('nutrition.exportPdf')}
             </button>
-            <button className="btn btn-danger" style={{ fontSize:13, padding:'7px 14px' }} onClick={() => onDelete(plan.id)}>
-              🗑 {t('nutrition.deletePlan')}
+            <button className="btn btn-danger" style={{ fontSize:13, padding:'9px 14px' }}
+              onClick={() => onDelete(plan.id)}>
+              🗑
             </button>
           </div>
         </div>
@@ -474,13 +516,14 @@ function PlanCard({ plan, dog, onDelete, t }) {
 export function NutritionScreen({ dog, weights }) {
   const { t, i18n } = useTranslation()
 
-  const [savedItems,     setSavedItems]     = useState([])    // list of saved food items
-  const [showForm,       setShowForm]       = useState(false)  // is "add item" form open?
-  const [formInitialType, setFormInitialType] = useState('dry') // type to pre-fill on open
-  const [editItem,       setEditItem]       = useState(null)   // { index, item } when editing
-  const [generating,  setGenerating]  = useState(false)
-  const [plans,       setPlans]       = useState([])
-  const [error,       setError]       = useState('')
+  const [savedItems,      setSavedItems]      = useState([])
+  const [showForm,        setShowForm]        = useState(false)
+  const [formInitialType, setFormInitialType] = useState('dry')
+  const [editItem,        setEditItem]        = useState(null)
+  const [generating,      setGenerating]      = useState(false)
+  const [plans,           setPlans]           = useState([])
+  const [error,           setError]           = useState('')
+  const [pdfPlan,         setPdfPlan]         = useState(null)  // plan to show in PDF modal
 
   useEffect(() => {
     if (!dog?.id) return
@@ -505,7 +548,7 @@ export function NutritionScreen({ dog, weights }) {
     setSavedItems(prev => prev.filter((_,i) => i !== idx))
   }
 
-  // Generate plan
+  // Generate plan — new plan added to top and auto-expanded
   const handleGenerate = async () => {
     if (!dog) return
     setGenerating(true)
@@ -514,8 +557,12 @@ export function NutritionScreen({ dog, weights }) {
       const plan = await generateNutritionPlan(dog, weights, savedItems, i18n.language || 'pl')
       const record = { dogId: dog.id, plan, foodItems: savedItems }
       const id = await addNutritionPlan(record)
-      setPlans(prev => [{ ...record, id, generatedAt: Date.now() }, ...prev])
-      document.getElementById('nutrition-plans-top')?.scrollIntoView({ behavior: 'smooth' })
+      const newPlan = { ...record, id, generatedAt: Date.now() }
+      setPlans(prev => [newPlan, ...prev])
+      // Scroll to plan and show it expanded immediately
+      setTimeout(() => {
+        document.getElementById('nutrition-plans-top')?.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
     } catch (err) {
       setError(err.message || t('nutrition.generateError'))
     } finally {
@@ -544,6 +591,14 @@ export function NutritionScreen({ dog, weights }) {
 
   return (
     <div className="screen" style={{ paddingBottom: 80 }}>
+      {/* PDF preview modal */}
+      {pdfPlan && (
+        <PdfModal
+          plan={pdfPlan}
+          dog={dog}
+          onClose={() => setPdfPlan(null)}
+        />
+      )}
 
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', gap:10, padding:'16px 16px 8px' }}>
@@ -657,8 +712,16 @@ export function NutritionScreen({ dog, weights }) {
             <div style={{ fontSize:13, fontWeight:600, color:'var(--gray-500)', marginBottom:8 }}>
               {t('nutrition.history')} ({plans.length})
             </div>
-            {plans.map(plan => (
-              <PlanCard key={plan.id} plan={plan} dog={dog} onDelete={handleDelete} t={t} />
+            {plans.map((plan, idx) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                dog={dog}
+                onDelete={handleDelete}
+                onShowPdf={setPdfPlan}
+                defaultExpanded={idx === 0}
+                t={t}
+              />
             ))}
           </div>
         )}
