@@ -375,6 +375,50 @@ export function parseVaccinations(text) {
 }
 
 /**
+ * Parse food packaging label.
+ * Extracts: brand, productName, ingredients, analysisText (protein%, fat%, etc.)
+ *
+ * Returns: { brand, productName, ingredients, analysis, fullText }
+ * fullText is always the raw OCR text — useful for Gemini context.
+ */
+export function parseFoodLabel(text) {
+  // Brand name: first short line (≤30 chars) that looks like a brand
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
+  const brand = lines.find(l => l.length >= 2 && l.length <= 30 && /^[A-Za-zżźćńółśąęŻŹĆŃÓŁŚĄĘ\s]+$/.test(l)) || ''
+
+  // Product name: line after brand or containing keywords
+  const productName = valueFlexible(text, [
+    'Nazwa produktu', 'Product name', 'Produktname', 'Nombre del producto',
+    'Pełnoporcjowa', 'Complete', 'Karma',
+  ]) || ''
+
+  // Ingredients: text after "Skład" or "Ingredients"
+  let ingredients = ''
+  for (const kw of ['Skład:', 'Skład', 'Ingredients:', 'Ingredients', 'Zutaten:', 'Zutaten', 'Ingredientes:']) {
+    const idx = text.indexOf(kw)
+    if (idx !== -1) {
+      // Take up to 500 chars, stopping at analysis section keywords
+      const raw = text.slice(idx + kw.length, idx + kw.length + 500)
+      const stopAt = raw.search(/Składniki analityczne|Analytical constituents|Analytische|Analyse|Wartości odżywcze|Nutrition|Zawartość/i)
+      ingredients = (stopAt > 0 ? raw.slice(0, stopAt) : raw).trim().replace(/\s{2,}/g, ' ')
+      break
+    }
+  }
+
+  // Analytical constituents (protein, fat, fibre, moisture)
+  let analysis = ''
+  for (const kw of ['Składniki analityczne', 'Analytical constituents', 'Analytische Bestandteile', 'Análisis']) {
+    const idx = text.indexOf(kw)
+    if (idx !== -1) {
+      analysis = text.slice(idx, idx + 300).trim().replace(/\s{2,}/g, ' ')
+      break
+    }
+  }
+
+  return { brand, productName, ingredients, analysis, fullText: text }
+}
+
+/**
  * Parse antiparasitic / deworming page:
  *   EU passport Section VI (Echinococcus)
  *   DE/AT Entwurmung / ES Desparasitación

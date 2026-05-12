@@ -4,7 +4,9 @@ import {
 import { db } from './firebase'
 import {
   getAllDogs, getAllWeights, getVaccinations, getDewormings, getParasitePrevention,
+  getNutritionPlans, getTrainingProfile, getTrainingPlans,
   addDogRaw, addWeightRaw, addVaccinationRaw, addDewormingRaw, addParasitePreventionRaw,
+  addNutritionPlanRaw, saveTrainingProfileRaw, addTrainingPlanRaw,
   clearAllData,
 } from './db'
 
@@ -43,10 +45,13 @@ export async function uploadBackup(uid) {
     const dogRef = doc(db, 'users', uid, 'dogs', String(dog.id))
     batch.set(dogRef, sanitize(dog))
 
-    const weights       = await getAllWeights(dog.id)
-    const vaccinations  = await getVaccinations(dog.id)
-    const dewormings    = await getDewormings(dog.id)
-    const parasites     = await getParasitePrevention(dog.id)
+    const weights          = await getAllWeights(dog.id)
+    const vaccinations     = await getVaccinations(dog.id)
+    const dewormings       = await getDewormings(dog.id)
+    const parasites        = await getParasitePrevention(dog.id)
+    const nutritionPlans   = await getNutritionPlans(dog.id)
+    const trainingProfile  = await getTrainingProfile(dog.id)
+    const trainingPlans    = await getTrainingPlans(dog.id)
 
     for (const w of weights) {
       batch.set(doc(db, 'users', uid, 'weights', String(w.id)), sanitize(w))
@@ -59,6 +64,15 @@ export async function uploadBackup(uid) {
     }
     for (const p of parasites) {
       batch.set(doc(db, 'users', uid, 'parasitePrevention', String(p.id)), sanitize(p))
+    }
+    for (const n of nutritionPlans) {
+      batch.set(doc(db, 'users', uid, 'nutritionPlans', String(n.id)), sanitize(n))
+    }
+    if (trainingProfile) {
+      batch.set(doc(db, 'users', uid, 'trainingProfiles', String(dog.id)), sanitize(trainingProfile))
+    }
+    for (const tp of trainingPlans) {
+      batch.set(doc(db, 'users', uid, 'trainingPlans', String(tp.id)), sanitize(tp))
     }
   }
 
@@ -74,20 +88,24 @@ export async function downloadBackup(uid) {
     return s.docs.map(d => d.data())
   }
 
-  const [dogs, weights, vaccinations, dewormings, parasites] = await Promise.all([
+  const [dogs, weights, vaccinations, dewormings, parasites, nutritionPlans, trainingProfiles, trainingPlans] = await Promise.all([
     snap('dogs'), snap('weights'), snap('vaccinations'),
-    snap('dewormings'), snap('parasitePrevention'),
+    snap('dewormings'), snap('parasitePrevention'), snap('nutritionPlans'),
+    snap('trainingProfiles'), snap('trainingPlans'),
   ])
 
   if (!dogs.length) return false  // no backup found
 
   await clearAllData()
 
-  for (const d of dogs)        await addDogRaw(d)
-  for (const w of weights)     await addWeightRaw(w)
-  for (const v of vaccinations) await addVaccinationRaw(v)
-  for (const d of dewormings)  await addDewormingRaw(d)
-  for (const p of parasites)   await addParasitePreventionRaw(p)
+  for (const d of dogs)             await addDogRaw(d)
+  for (const w of weights)          await addWeightRaw(w)
+  for (const v of vaccinations)     await addVaccinationRaw(v)
+  for (const d of dewormings)       await addDewormingRaw(d)
+  for (const p of parasites)        await addParasitePreventionRaw(p)
+  for (const n of nutritionPlans)   await addNutritionPlanRaw(n)
+  for (const tp of trainingProfiles) await saveTrainingProfileRaw(tp)
+  for (const tp of trainingPlans)   await addTrainingPlanRaw(tp)
 
   markSyncDone()
   return true
