@@ -4,9 +4,9 @@ import {
 import { db } from './firebase'
 import {
   getAllDogs, getAllWeights, getVaccinations, getDewormings, getParasitePrevention,
-  getNutritionPlans, getTrainingProfile, getTrainingPlans,
+  getNutritionPlans, getTrainingProfile, getTrainingPlans, getDietHistory,
   addDogRaw, addWeightRaw, addVaccinationRaw, addDewormingRaw, addParasitePreventionRaw,
-  addNutritionPlanRaw, saveTrainingProfileRaw, addTrainingPlanRaw,
+  addNutritionPlanRaw, saveTrainingProfileRaw, addTrainingPlanRaw, addDietVersionRaw,
   clearAllData,
 } from './db'
 
@@ -52,6 +52,7 @@ export async function uploadBackup(uid) {
     const nutritionPlans   = await getNutritionPlans(dog.id)
     const trainingProfile  = await getTrainingProfile(dog.id)
     const trainingPlans    = await getTrainingPlans(dog.id)
+    const dietHistory      = await getDietHistory(dog.id)
 
     for (const w of weights) {
       batch.set(doc(db, 'users', uid, 'weights', String(w.id)), sanitize(w))
@@ -74,6 +75,9 @@ export async function uploadBackup(uid) {
     for (const tp of trainingPlans) {
       batch.set(doc(db, 'users', uid, 'trainingPlans', String(tp.id)), sanitize(tp))
     }
+    for (const dh of dietHistory) {
+      batch.set(doc(db, 'users', uid, 'dogDiets', String(dh.id)), sanitize(dh))
+    }
   }
 
   await batch.commit()
@@ -88,10 +92,10 @@ export async function downloadBackup(uid) {
     return s.docs.map(d => d.data())
   }
 
-  const [dogs, weights, vaccinations, dewormings, parasites, nutritionPlans, trainingProfiles, trainingPlans] = await Promise.all([
+  const [dogs, weights, vaccinations, dewormings, parasites, nutritionPlans, trainingProfiles, trainingPlans, dogDiets] = await Promise.all([
     snap('dogs'), snap('weights'), snap('vaccinations'),
     snap('dewormings'), snap('parasitePrevention'), snap('nutritionPlans'),
-    snap('trainingProfiles'), snap('trainingPlans'),
+    snap('trainingProfiles'), snap('trainingPlans'), snap('dogDiets'),
   ])
 
   if (!dogs.length) return false  // no backup found
@@ -106,6 +110,7 @@ export async function downloadBackup(uid) {
   for (const n of nutritionPlans)   await addNutritionPlanRaw(n)
   for (const tp of trainingProfiles) await saveTrainingProfileRaw(tp)
   for (const tp of trainingPlans)   await addTrainingPlanRaw(tp)
+  for (const dh of dogDiets)        await addDietVersionRaw(dh)
 
   markSyncDone()
   return true

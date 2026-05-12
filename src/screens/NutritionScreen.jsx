@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { generateNutritionPlan, calcWeightStatus } from '../utils/gemini'
 import { getNutritionPlans, addNutritionPlan, deleteNutritionPlan,
          getVaccinations, getDewormings, getParasitePrevention,
-         getSetting, setSetting } from '../utils/db'
+         getCurrentDiet, autosaveDiet, saveDietVersion,
+         getDietHistory, deleteDietVersion } from '../utils/db'
 import { runOCR, parseFoodLabel } from '../utils/ocr'
 import { resizeImage } from '../utils/imageUtils'
 
@@ -524,10 +525,14 @@ export function NutritionScreen({ dog, weights }) {
   const [editItem,        setEditItem]        = useState(null)
   const [generating,      setGenerating]      = useState(false)
   const [plans,           setPlans]           = useState([])
+  const [dietHistory,     setDietHistory]     = useState([])
   const [error,           setError]           = useState('')
   const [pdfPlan,         setPdfPlan]         = useState(null)
   const [healthData,      setHealthData]      = useState({})
-  const loadedRef = useRef(false)  // guard: don't save before initial load
+  const [showVersionNote, setShowVersionNote] = useState(false)
+  const [versionNote,     setVersionNote]     = useState('')
+  const [historyOpen,     setHistoryOpen]     = useState(false)
+  const loadedRef = useRef(false)
 
   // ── Load everything from DB on mount ──────────────────────────────────────
   useEffect(() => {
@@ -536,29 +541,27 @@ export function NutritionScreen({ dog, weights }) {
 
     Promise.all([
       getNutritionPlans(dog.id).catch(() => []),
-      getSetting('current-diet-' + dog.id).catch(() => null),
+      getCurrentDiet(dog.id).catch(() => null),
+      getDietHistory(dog.id).catch(() => []),
       getVaccinations(dog.id).catch(() => []),
       getDewormings(dog.id).catch(() => []),
       getParasitePrevention(dog.id).catch(() => []),
-    ]).then(([plans, dietJson, vaccinations, dewormings, parasitePrevention]) => {
+    ]).then(([plans, currentDiet, history, vaccinations, dewormings, parasitePrevention]) => {
       setPlans(plans)
+      setDietHistory(history)
       setHealthData({ vaccinations, dewormings, parasitePrevention })
-
-      // Restore diet items: prefer explicitly saved draft, then last plan's items
-      if (dietJson) {
-        try { setSavedItems(JSON.parse(dietJson)) } catch (_) {}
-      } else if (plans.length > 0 && plans[0].foodItems?.length > 0) {
-        setSavedItems(plans[0].foodItems)
+      // Load current diet items
+      if (currentDiet?.items?.length > 0) {
+        setSavedItems(currentDiet.items)
       }
-
       loadedRef.current = true
     })
   }, [dog?.id])
 
-  // ── Persist savedItems to DB whenever they change ─────────────────────────
+  // ── Autosave to DB whenever savedItems change ─────────────────────────────
   useEffect(() => {
     if (!dog?.id || !loadedRef.current) return
-    setSetting('current-diet-' + dog.id, JSON.stringify(savedItems)).catch(() => {})
+    autosaveDiet(dog.id, savedItems).catch(() => {})
   }, [savedItems, dog?.id])
 
   // Add item
@@ -605,6 +608,22 @@ export function NutritionScreen({ dog, weights }) {
     if (!window.confirm(t('nutrition.confirmDelete'))) return
     await deleteNutritionPlan(id)
     setPlans(prev => prev.filter(p => p.id !== id))
+  }
+
+  // ── Save a new named diet version ─────────────────────────────────────────
+  const handleSaveVersion = async () => {
+    if (!dog?.id) return
+    await saveDietVersion(dog.id, savedItems, versionNote.trim())
+    const history = await getDietHistory(dog.id)
+    setDietHistory(history)
+    setVersionNote('')
+    setShowVersionNote(false)
+  }
+
+  const handleDeleteDietVersion = async (id) => {
+    if (!window.confirm('Usunąć tę wersję diety?')) return
+    await deleteDietVersion(id)
+    setDietHistory(prev => prev.filter(v => v.id !== id))
   }
 
   const weightStatus = dog ? calcWeightStatus(dog, weights) : { status: 'unknown' }
@@ -729,6 +748,99 @@ export function NutritionScreen({ dog, weights }) {
             ? <><span className="spinner" style={{ width:16, height:16 }} /> {t('nutrition.generating')}</>
             : <>🤖 {t('nutrition.generateBtn')}</>}
         </button>
+
+        {/* ── Save version button ── */}
+        {savedItems.length > 0 && !showVersionNote && (
+          <button type="button"
+            onClick={() => setShowVersionNote(true)}
+            style={{ width:'100%', marginBottom:10, padding:'9px 0', borderRadius:10,
+              border:'1.5px solid var(--gray-200)', background:'transparent',
+              cursor:'pointer', fontSize:13, color:'var(--gray-500)', fontWeight:600 }}>
+            💾 Zapisz jako nową wersję diety
+          </button>
+        )}
+        {showVersionNote && (
+          <div style={{ background:'var(--gray-100)', borderRadius:10, padding:12, marginBottom:10 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'var(--gray-500)', marginBottom:6 }}>
+              Notatka do tej wersji (opcjonalnie)
+            </div>
+            <input type="text" value={versionNote}
+              onChange={e => setVersionNote(e.target.value)}
+              placeholder='np. "Zmiana karmy na Royal Canin Light"'
+              style={{ width:'100%', border:'1.5px solid var(--gray-200)', borderRadius:8,
+                padding:'8px 10px', fontSize:13, background:'#fff', marginBottom:8, boxSizing:'border-box' }} />
+            <div style={{ display:'flex', gap:8 }}>
+              <button className="btn btn-primary" style={{ flex:1, padding:'8px 0', fontSize:13 }}
+                onClick={handleSaveVersion}>
+                💾 Zapisz wersję
+              </button>
+              <button className="btn btn-secondary" style={{ padding:'8px 14px', fontSize:13 }}
+                onClick={() => { setShowVersionNote(false); setVersionNote('') }}>
+                Anuluj
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Diet history ── */}
+        {dietHistory.length > 1 && (
+          <div style={{ marginBottom:14 }}>
+            <button type="button"
+              onClick={() => setHistoryOpen(x => !x)}
+              style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%',
+                background:'none', border:'none', cursor:'pointer', padding:'6px 0',
+                fontSize:13, fontWeight:700, color:'var(--gray-500)' }}>
+              <span>📋 Historia diety ({dietHistory.length} wersji)</span>
+              <span>{historyOpen ? '▲' : '▼'}</span>
+            </button>
+            {historyOpen && (
+              <div style={{ marginTop:6 }}>
+                {dietHistory.map((v, idx) => {
+                  const d = new Date(v.savedAt)
+                  const dateStr = d.toLocaleDateString('pl-PL', { day:'2-digit', month:'2-digit', year:'numeric' })
+                  const timeStr = d.toLocaleTimeString('pl-PL', { hour:'2-digit', minute:'2-digit' })
+                  const isCurrent = idx === 0
+                  return (
+                    <div key={v.id} style={{ background: isCurrent ? '#f0fdf4' : 'var(--surface)',
+                      border:`1px solid ${isCurrent ? '#86efac' : 'var(--gray-200)'}`,
+                      borderRadius:10, padding:'10px 12px', marginBottom:6 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                        <div>
+                          <div style={{ fontSize:12, fontWeight:700, color: isCurrent ? '#166534' : 'var(--gray-600)' }}>
+                            {isCurrent ? '✅ Aktualna dieta' : `📅 ${dateStr} ${timeStr}`}
+                          </div>
+                          {v.note && <div style={{ fontSize:12, color:'var(--gray-500)', marginTop:2 }}>📝 {v.note}</div>}
+                          <div style={{ fontSize:11, color:'var(--gray-400)', marginTop:2 }}>
+                            {v.items?.length || 0} składnik{(v.items?.length || 0) === 1 ? '' : (v.items?.length || 0) < 5 ? 'i' : 'ów'}
+                            {v.items?.map(it => {
+                              const ft = FOOD_TYPES.find(f => f.id === it.type)
+                              return ft?.icon
+                            }).filter(Boolean).join(' ')}
+                          </div>
+                        </div>
+                        {!isCurrent && (
+                          <button onClick={() => handleDeleteDietVersion(v.id)}
+                            style={{ background:'none', border:'none', cursor:'pointer', fontSize:14,
+                              color:'var(--gray-400)', padding:'2px 4px', flexShrink:0 }}>✕</button>
+                        )}
+                      </div>
+                      {/* Show items of non-current versions when expanded */}
+                      {!isCurrent && v.items?.length > 0 && (
+                        <div style={{ marginTop:8, fontSize:11, color:'var(--gray-500)' }}>
+                          {v.items.map((it, i) => {
+                            const ft = FOOD_TYPES.find(f => f.id === it.type)
+                            const name = it.name || t(ft?.labelKey || 'nutrition.typeOther')
+                            return <div key={i}>{ft?.icon} {name}</div>
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {error && (
           <div style={{ background:'#fef2f2', border:'1px solid #fca5a5', borderRadius:8, padding:'10px 14px', marginBottom:12, fontSize:13, color:'#991b1b' }}>

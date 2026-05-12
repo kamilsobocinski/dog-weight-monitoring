@@ -45,6 +45,20 @@ db.version(4).stores({
   trainingPlans:      '++id, dogId, generatedAt',
 })
 
+// v5 — dog diet history: versioned diet snapshots per dog
+db.version(5).stores({
+  dogs:               '++id, name, breedId, sex, birthdate',
+  weights:            '++id, dogId, date, value, note',
+  settings:           'key',
+  vaccinations:       '++id, dogId, date, vaccineType',
+  dewormings:         '++id, dogId, date',
+  parasitePrevention: '++id, dogId, date',
+  nutritionPlans:     '++id, dogId, generatedAt',
+  trainingProfiles:   'dogId',
+  trainingPlans:      '++id, dogId, generatedAt',
+  dogDiets:           '++id, dogId, savedAt',
+})
+
 // ─── Dogs ────────────────────────────────────────────────────────────────────
 
 export async function getAllDogs() {
@@ -262,6 +276,46 @@ export async function getAllWeights(dogId) {
   return db.weights.where('dogId').equals(dogId).sortBy('date')
 }
 
+// ─── Dog diets (versioned history) ───────────────────────────────────────────
+
+/** Get the current (most recent) diet for a dog */
+export async function getCurrentDiet(dogId) {
+  const entries = await db.dogDiets.where('dogId').equals(dogId).sortBy('savedAt')
+  return entries.length > 0 ? entries[entries.length - 1] : null
+}
+
+/** Autosave — update items in the current entry without changing savedAt.
+ *  Creates first entry if none exists. */
+export async function autosaveDiet(dogId, items) {
+  const current = await getCurrentDiet(dogId)
+  if (current) {
+    await db.dogDiets.update(current.id, { items })
+  } else {
+    await db.dogDiets.add({ dogId, items, savedAt: Date.now(), note: '' })
+  }
+}
+
+/** Save a new named version (preserves previous entry as history) */
+export async function saveDietVersion(dogId, items, note = '') {
+  return db.dogDiets.add({ dogId, items, savedAt: Date.now(), note })
+}
+
+/** Get full diet history for a dog, newest first */
+export async function getDietHistory(dogId) {
+  const entries = await db.dogDiets.where('dogId').equals(dogId).sortBy('savedAt')
+  return entries.reverse()
+}
+
+/** Delete a specific diet version */
+export async function deleteDietVersion(id) {
+  return db.dogDiets.delete(id)
+}
+
+/** Raw insert for cloud restore */
+export async function addDietVersionRaw(entry) {
+  return db.dogDiets.add(entry)
+}
+
 /** Wipe all local data (used before restoring from cloud) */
 export async function clearAllData() {
   await db.dogs.clear()
@@ -272,6 +326,7 @@ export async function clearAllData() {
   await db.nutritionPlans.clear()
   await db.trainingProfiles.clear()
   await db.trainingPlans.clear()
+  await db.dogDiets.clear()
 }
 
 // ─── Settings ────────────────────────────────────────────────────────────────
