@@ -383,17 +383,24 @@ Jeśli czegoś nie widać — wstaw null. Zwróć WYŁĄCZNIE sam JSON.`
             { inlineData: { mimeType, data: base64 } },
             { text: prompt },
           ]}],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 512 },
+          generationConfig: { temperature: 0.1, maxOutputTokens: 600 },
         }),
       })
       const json = await res.json()
-      if (!res.ok) throw new Error(`[${model}] ${json.error?.message || res.status}`)
+      if (!res.ok) {
+        const msg = json.error?.message || `HTTP ${res.status}`
+        throw new Error(`[${model}] ${msg}`)
+      }
       const text = json.candidates?.[0]?.content?.parts?.[0]?.text
       if (!text) throw new Error(`[${model}] Pusta odpowiedź`)
-      // Strip any accidental markdown fences
-      const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
-      return JSON.parse(cleaned)
+
+      // Strip markdown fences, then extract the first {...} block
+      const stripped = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
+      const jsonMatch = stripped.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new Error(`[${model}] Brak JSON w odpowiedzi: ${stripped.slice(0, 120)}`)
+      return JSON.parse(jsonMatch[0])
     } catch (err) {
+      console.warn('Scan model failed:', model, err.message)
       errors.push(err.message)
       if (err.message.includes('API_KEY_INVALID') || err.message.includes('403') || err.message.includes('PERMISSION_DENIED')) break
     }

@@ -312,7 +312,9 @@ function ItemForm({ initial, onSave, onCancel, t, language }) {
       setScanInfo(info)
     } catch (err) {
       console.error('Scan error:', err)
-      alert('Nie udało się rozpoznać opakowania.\n' + err.message)
+      // Show the real API error so it's easier to diagnose
+      const msg = err.message || 'nieznany błąd'
+      alert('Nie udało się rozpoznać opakowania.\n\nSzczegóły: ' + msg)
     } finally {
       setScan(false)
       e.target.value = ''
