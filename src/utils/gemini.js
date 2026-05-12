@@ -227,7 +227,12 @@ function buildPrompt(dog, weights, foodItems, language = 'pl') {
   }
 
   lines.push('')
-  lines.push('Formatuj odpowiedź czytelnie z nagłówkami (##) i listami punktowanymi. Bądź konkretny i praktyczny.')
+  lines.push('## Ważne instrukcje formatowania:')
+  lines.push('- NIE pisz wstępu ani ogólnych zdań o tym, że "AI pomoże" lub "przedstawię plan".')
+  lines.push('- Zacznij BEZPOŚREDNIO od pierwszego nagłówka (## 1. ...)')
+  lines.push('- Każdy punkt = konkretna liczba, dawka, marka lub zalecenie. Zero ogólników.')
+  lines.push('- Używaj nagłówków ## i list - (myślnik) dla czytelności.')
+  lines.push('- Odpowiedź musi być kompletna — wygeneruj WSZYSTKIE 7 punktów planu.')
 
   return lines.join('\n')
 }
@@ -252,7 +257,7 @@ async function tryModel(model, prompt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 1500 },
+      generationConfig: { temperature: 0.6, maxOutputTokens: 4096 },
     }),
   })
 

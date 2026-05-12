@@ -527,7 +527,13 @@ export function NutritionScreen({ dog, weights }) {
 
   useEffect(() => {
     if (!dog?.id) return
-    getNutritionPlans(dog.id).then(setPlans).catch(() => {})
+    getNutritionPlans(dog.id).then(plans => {
+      setPlans(plans)
+      // Restore saved items from the most recent plan so user doesn't lose their diet data
+      if (plans.length > 0 && plans[0].foodItems?.length > 0) {
+        setSavedItems(plans[0].foodItems)
+      }
+    }).catch(() => {})
   }, [dog?.id])
 
   // Add item
