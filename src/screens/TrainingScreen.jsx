@@ -402,7 +402,7 @@ function PlanCard({ plan, onFeedback, onDelete, onGenerateNext, isLatest, langua
   const stars = plan.feedbackRating ? '⭐'.repeat(plan.feedbackRating) : null
   const hasFeedback = !!plan.feedbackRating
 
-  return (
+  return (<>
     <div className="card" style={{ marginBottom: 12 }}>
       {/* Header — or inline delete confirm when confirmDel=true */}
       {confirmDel ? (
@@ -495,9 +495,8 @@ function PlanCard({ plan, onFeedback, onDelete, onGenerateNext, isLatest, langua
         </div>
       )}
     </div>
-
     {showPdf && <PlanPdfModal plan={plan} dog={dog} onClose={() => setShowPdf(false)} />}
-  )
+  </>)
 }
 
 // ─── TrainingScreen ───────────────────────────────────────────────────────────
