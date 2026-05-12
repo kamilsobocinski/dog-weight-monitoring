@@ -160,20 +160,35 @@ function buildTrainingPrompt(dog, weights, profile, lastPlan, language = 'pl') {
   const isFirst = !lastPlan
   lines.push('\n## Zadanie:')
   lines.push(isFirst
-    ? `Przygotuj PIERWSZY plan treningowy dla ${dog?.name || 'tego psa'}. Zacznij od podstaw, oceń gotowość psa i zaproponuj realistyczny start.`
-    : `Na podstawie feedbacku z poprzedniej sesji — przygotuj KOLEJNY plan treningowy pokazujący postęp.`
+    ? `Przygotuj PIERWSZY plan treningowy dla ${dog?.name || 'tego psa'}.`
+    : `Na podstawie feedbacku z poprzedniej sesji przygotuj KOLEJNY plan treningowy.`
   )
   lines.push('')
-  lines.push('Plan musi zawierać:')
-  lines.push('1. **Cel sesji** — co chcemy osiągnąć w tej konkretnej sesji')
-  lines.push('2. **Rozgrzewka (2–3 min)** — szybkie ćwiczenia znanych komend, żeby pies wszedł w tryb pracy')
-  lines.push('3. **Ćwiczenia główne** — 3–4 ćwiczenia z dokładnym opisem techniki krok po kroku')
-  lines.push('4. **Praca nad zachowaniem** — konkretna technika dla wskazanego zachowania do pracy')
-  lines.push('5. **Zakończenie (1–2 min)** — cool-down, coś co pies na pewno umie, żeby skończyć sukcesem')
-  lines.push('6. **Wskazówki** — 2–3 praktyczne porady na co zwracać uwagę')
+  lines.push('Plan musi zawierać DOKŁADNIE te sekcje (zacznij bezpośrednio od punktu 1):')
+  lines.push('## 1. Cel sesji')
+  lines.push('_(co konkretnie chcemy osiągnąć w tej sesji — 2–3 zdania)_')
   lines.push('')
-  lines.push(`Sesja powinna trwać ok. ${profile.minutesPerSession || 15} minut. Bądź konkretny — opisuj jak najdokładniej technikę każdego ćwiczenia.`)
-  lines.push('Formatuj odpowiedź czytelnie z nagłówkami (##) i listami. Używaj polskich nazw komend.')
+  lines.push('## 2. Rozgrzewka (2–3 min)')
+  lines.push('_(3 znane komendy do szybkiego powtórzenia — po 3–5 powtórzeń każda)_')
+  lines.push('')
+  lines.push('## 3. Ćwiczenia główne')
+  lines.push('_(3–4 ćwiczenia, każde z nazwą, techniką krok po kroku, liczbą powtórzeń i wskazówką)_')
+  lines.push('')
+  lines.push('## 4. Praca nad zachowaniem')
+  lines.push('_(konkretna technika pracy nad wskazanym problemem — krok po kroku)_')
+  lines.push('')
+  lines.push('## 5. Zakończenie (1–2 min)')
+  lines.push('_(ulubiona komenda + nagroda, pozytywne zakończenie sesji)_')
+  lines.push('')
+  lines.push('## 6. Wskazówki praktyczne')
+  lines.push('_(2–3 krótkie porady na co uważać podczas tej sesji)_')
+  lines.push('')
+  lines.push('## Ważne instrukcje:')
+  lines.push('- NIE pisz wstępu, powitania ani ogólnych zdań o psim treningu.')
+  lines.push('- Zacznij BEZPOŚREDNIO od "## 1. Cel sesji".')
+  lines.push('- Każde ćwiczenie = konkretne kroki (1. Stań... 2. Pokaż...), czas trwania, liczba powtórzeń.')
+  lines.push('- Zero ogólników — same konkretne działania.')
+  lines.push(`- Cała sesja ma trwać ok. ${profile.minutesPerSession || 15} minut.`)
 
   return lines.join('\n')
 }
@@ -185,7 +200,7 @@ async function tryModel(model, prompt) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.75, maxOutputTokens: 2000 },
+      generationConfig: { temperature: 0.65, maxOutputTokens: 4096 },
     }),
   })
   const json = await res.json()
