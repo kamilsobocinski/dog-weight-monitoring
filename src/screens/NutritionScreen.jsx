@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { generateNutritionPlan, calcWeightStatus } from '../utils/gemini'
 import { getNutritionPlans, addNutritionPlan, deleteNutritionPlan,
-         getVaccinations, getDewormings, getParasitePrevention } from '../utils/db'
+         getVaccinations, getDewormings, getParasitePrevention,
+         getSetting, setSetting } from '../utils/db'
 import { runOCR, parseFoodLabel } from '../utils/ocr'
 import { resizeImage } from '../utils/imageUtils'
 
@@ -526,25 +527,39 @@ export function NutritionScreen({ dog, weights }) {
   const [error,           setError]           = useState('')
   const [pdfPlan,         setPdfPlan]         = useState(null)
   const [healthData,      setHealthData]      = useState({})
+  const loadedRef = useRef(false)  // guard: don't save before initial load
 
+  // ── Load everything from DB on mount ──────────────────────────────────────
   useEffect(() => {
     if (!dog?.id) return
-    // Load nutrition plans + restore last saved items
-    getNutritionPlans(dog.id).then(plans => {
-      setPlans(plans)
-      if (plans.length > 0 && plans[0].foodItems?.length > 0) {
-        setSavedItems(plans[0].foodItems)
-      }
-    }).catch(() => {})
-    // Load health records for the AI prompt
+    loadedRef.current = false
+
     Promise.all([
+      getNutritionPlans(dog.id).catch(() => []),
+      getSetting('current-diet-' + dog.id).catch(() => null),
       getVaccinations(dog.id).catch(() => []),
       getDewormings(dog.id).catch(() => []),
       getParasitePrevention(dog.id).catch(() => []),
-    ]).then(([vaccinations, dewormings, parasitePrevention]) => {
+    ]).then(([plans, dietJson, vaccinations, dewormings, parasitePrevention]) => {
+      setPlans(plans)
       setHealthData({ vaccinations, dewormings, parasitePrevention })
+
+      // Restore diet items: prefer explicitly saved draft, then last plan's items
+      if (dietJson) {
+        try { setSavedItems(JSON.parse(dietJson)) } catch (_) {}
+      } else if (plans.length > 0 && plans[0].foodItems?.length > 0) {
+        setSavedItems(plans[0].foodItems)
+      }
+
+      loadedRef.current = true
     })
   }, [dog?.id])
+
+  // ── Persist savedItems to DB whenever they change ─────────────────────────
+  useEffect(() => {
+    if (!dog?.id || !loadedRef.current) return
+    setSetting('current-diet-' + dog.id, JSON.stringify(savedItems)).catch(() => {})
+  }, [savedItems, dog?.id])
 
   // Add item
   const handleAddItem = (form) => {
