@@ -330,43 +330,125 @@ function FeedbackForm({ onSave, onClose }) {
   )
 }
 
+// ─── Training Plan PDF modal ──────────────────────────────────────────────────
+
+function PlanPdfModal({ plan, dog, onClose }) {
+  useEffect(() => {
+    document.body.classList.add('nutrition-pdf-open')
+    return () => document.body.classList.remove('nutrition-pdf-open')
+  }, [])
+
+  const d = new Date(plan.generatedAt)
+  const dateStr = d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const timeStr = d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <div className="nutrition-pdf-wrapper" style={{
+      position: 'fixed', inset: 0, zIndex: 300, background: '#fff',
+      overflowY: 'auto', WebkitOverflowScrolling: 'touch',
+    }}>
+      {/* Toolbar */}
+      <div className="nutrition-pdf-no-print" style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        background: '#fff', borderBottom: '1px solid #e5e7eb',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 16px',
+      }}>
+        <button onClick={onClose} style={{
+          background: 'none', border: '1px solid #d1d5db', borderRadius: 8,
+          padding: '7px 14px', fontSize: 14, cursor: 'pointer', color: '#374151',
+        }}>✕ Zamknij</button>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#6b7280' }}>Plan treningowy</span>
+        <button onClick={() => window.print()} style={{
+          background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8,
+          padding: '7px 14px', fontSize: 14, cursor: 'pointer', fontWeight: 600,
+        }}>🖨️ Drukuj / PDF</button>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '20px 24px', maxWidth: 680, margin: '0 auto' }}>
+        <div style={{ marginBottom: 16, paddingBottom: 12, borderBottom: '2px solid #e5e7eb' }}>
+          <h1 style={{ fontSize: 20, fontWeight: 800, margin: '0 0 4px', color: '#111827' }}>
+            🏋️ Plan treningowy — {dog?.name || ''}
+          </h1>
+          <div style={{ fontSize: 13, color: '#6b7280' }}>
+            {dog?.breedName && <span>{dog.breedName} · </span>}
+            Wygenerowano: {dateStr} {timeStr}
+          </div>
+        </div>
+        <MarkdownText text={plan.planText} />
+        {plan.feedbackRating && (
+          <div style={{ marginTop: 20, padding: '12px 16px', background: '#f9fafb', borderRadius: 8, borderLeft: '3px solid #2563eb' }}>
+            <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
+              Ocena sesji: {'⭐'.repeat(plan.feedbackRating)}
+            </div>
+            {plan.feedbackText && <div style={{ fontSize: 13, color: '#374151', fontStyle: 'italic' }}>"{plan.feedbackText}"</div>}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── PlanCard ─────────────────────────────────────────────────────────────────
 
-function PlanCard({ plan, onFeedback, onDelete, onGenerateNext, isLatest, language }) {
+function PlanCard({ plan, onFeedback, onDelete, onGenerateNext, isLatest, language, dog }) {
   const { t } = useTranslation()
   const [expanded, setExpanded]   = useState(isLatest)
   const [showFeedback, setShowFeedback] = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
+  const [showPdf,    setShowPdf]   = useState(false)
 
   const stars = plan.feedbackRating ? '⭐'.repeat(plan.feedbackRating) : null
   const hasFeedback = !!plan.feedbackRating
 
   return (
     <div className="card" style={{ marginBottom: 12 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: expanded ? 12 : 0 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontWeight: 700, fontSize: 14 }}>
-            🏋️ {t('training.plan.title')}
-            {hasFeedback && <span style={{ marginLeft: 8, fontSize: 12 }}>{stars}</span>}
+      {/* Header — or inline delete confirm when confirmDel=true */}
+      {confirmDel ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--red-light)', borderRadius: 8, padding: '10px 12px' }}>
+          <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--red)' }}>
+            {t('training.plan.confirmDelete')}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 2 }}>
-            {format(new Date(plan.generatedAt), 'dd.MM.yyyy HH:mm')}
-            {hasFeedback && <span style={{ marginLeft: 6, color: 'var(--green)', fontWeight: 600 }}>✓ {t('training.feedback.done')}</span>}
-          </div>
+          <button className="btn btn-danger" style={{ padding: '7px 16px', fontSize: 13, flexShrink: 0 }}
+            onClick={() => { onDelete(plan.id); setConfirmDel(false) }}>
+            {t('settings.confirmYes')}
+          </button>
+          <button className="btn btn-secondary" style={{ padding: '7px 16px', fontSize: 13, flexShrink: 0 }}
+            onClick={() => setConfirmDel(false)}>
+            {t('settings.confirmNo')}
+          </button>
         </div>
-        <button onClick={() => setExpanded(e => !e)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--gray-400)', padding: 4 }}>
-          {expanded ? '▲' : '▼'}
-        </button>
-        <button onClick={() => setConfirmDel(true)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--gray-300)', padding: 4 }}>
-          🗑
-        </button>
-      </div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: expanded ? 12 : 0 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>
+              🏋️ {t('training.plan.title')}
+              {hasFeedback && <span style={{ marginLeft: 8, fontSize: 12 }}>{stars}</span>}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--gray-400)', marginTop: 2 }}>
+              {format(new Date(plan.generatedAt), 'dd.MM.yyyy HH:mm')}
+              {hasFeedback && <span style={{ marginLeft: 6, color: 'var(--green)', fontWeight: 600 }}>✓ {t('training.feedback.done')}</span>}
+            </div>
+          </div>
+          <button onClick={() => setShowPdf(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--blue)', padding: '4px 6px', fontWeight: 600 }}
+            title="Eksportuj PDF">
+            📄
+          </button>
+          <button onClick={() => setExpanded(e => !e)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--gray-400)', padding: 4 }}>
+            {expanded ? '▲' : '▼'}
+          </button>
+          <button onClick={() => setConfirmDel(true)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--gray-300)', padding: 4 }}>
+            🗑
+          </button>
+        </div>
+      )}
 
       {/* Plan text */}
-      {expanded && (
+      {!confirmDel && expanded && (
         <div>
           <div style={{ borderTop: '1px solid var(--gray-100)', paddingTop: 12, marginBottom: 12 }}>
             <MarkdownText text={plan.planText} />
@@ -412,26 +494,9 @@ function PlanCard({ plan, onFeedback, onDelete, onGenerateNext, isLatest, langua
           )}
         </div>
       )}
-
-      {/* Delete confirm */}
-      {confirmDel && (
-        <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--red-light)', borderRadius: 8 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8, color: 'var(--red)' }}>
-            {t('training.plan.confirmDelete')}
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-danger" style={{ padding: '7px 16px', fontSize: 13 }}
-              onClick={() => { onDelete(plan.id); setConfirmDel(false) }}>
-              {t('settings.confirmYes')}
-            </button>
-            <button className="btn btn-secondary" style={{ padding: '7px 16px', fontSize: 13 }}
-              onClick={() => setConfirmDel(false)}>
-              {t('settings.confirmNo')}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
+
+    {showPdf && <PlanPdfModal plan={plan} dog={dog} onClose={() => setShowPdf(false)} />}
   )
 }
 
@@ -615,6 +680,7 @@ export function TrainingScreen({ dog, weights }) {
           key={latestPlan.id}
           plan={latestPlan}
           isLatest
+          dog={dog}
           language={i18n.language}
           onFeedback={handleFeedback}
           onDelete={handleDelete}
@@ -633,6 +699,7 @@ export function TrainingScreen({ dog, weights }) {
               key={plan.id}
               plan={plan}
               isLatest={false}
+              dog={dog}
               language={i18n.language}
               onFeedback={handleFeedback}
               onDelete={handleDelete}

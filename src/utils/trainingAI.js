@@ -84,6 +84,11 @@ function buildTrainingPrompt(dog, weights, profile, lastPlan, language = 'pl') {
   }[language] || 'Odpowiedz wyłącznie po polsku.'
 
   const lines = [
+    '## KRYTYCZNE ZASADY FORMATOWANIA (czytaj przed wszystkim):',
+    '1. NIE pisz żadnego wstępu, powitania, ani ogólnych zdań o treningu.',
+    '2. Pierwsza linia odpowiedzi MUSI zaczynać się od "## 1. Cel sesji".',
+    '3. Każde ćwiczenie = konkretne kroki, czas, liczba powtórzeń. Zero ogólników.',
+    '',
     `Jesteś profesjonalnym trenerem psów. ${langNote}`,
     '',
     '## Dane psa:',
